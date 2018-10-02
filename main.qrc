@@ -1,0 +1,21 @@
+<RCC>
+    <qresource prefix="/">
+        <file>images/check-off.png</file>
+        <file>images/check-on.png</file>
+        <file>images/check-disabled.png</file>
+        <file>images/48x48/add.png</file>
+        <file>images/48x48/connect.png</file>
+        <file>images/48x48/disconnect.png</file>
+        <file>images/48x48/open.png</file>
+        <file>images/48x48/remove.png</file>
+        <file>images/48x48/save.png</file>
+        <file>images/48x48/send.png</file>
+        <file>images/48x48/settings.png</file>
+        <file>images/48x48/about.png</file>
+        <file>images/48x48/insert_above.png</file>
+        <file>images/48x48/insert_below.png</file>
+        <file>images/play.png</file>
+        <file>images/main.png</file>
+        <file>images/32x32/send.png</file>
+    </qresource>
+</RCC>
