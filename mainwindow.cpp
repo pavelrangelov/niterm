@@ -409,7 +409,13 @@ void MainWindow::loadSettings()
     g_Settings.fontSize         = settings.value(STORE_FONTSIZE,    12).toInt();                    // 10
     g_Settings.comProtocol      = settings.value(STORE_MACROSPROTO, "None").toString();             // 11
     g_Settings.repeatAll        = settings.value(STORE_MACROSREPT,  false).toBool();                // 12
-    g_Settings.timeStamp        = settings.value(STORE_TIMESTAMP,   "None").toString();             // 13
+    g_Settings.timeStamp        = settings.value(STORE_TIMESTAMP,   "Disable").toString();          // 13
+
+    if (g_Settings.timeStamp != "Disable" &&
+        g_Settings.timeStamp != "Enable")
+    {
+        g_Settings.timeStamp = "Disable";
+    }
 
     QTextCodec::setCodecForLocale(QTextCodec::codecForName(g_Settings.textEncoding.toLatin1()));
 
@@ -456,13 +462,13 @@ void MainWindow::updateSettings()
 {
     bool ok;
 
-    if (g_Settings.timeStamp == "None")
+    if (g_Settings.timeStamp == "Disable")
     {
-        m_timeStamp = -1;
+        m_timeStamp = false;
     }
     else
     {
-        m_timeStamp = g_Settings.timeStamp.toInt(&ok, 16);
+        m_timeStamp = true;
     }
 
     QTextCodec::setCodecForLocale(QTextCodec::codecForName(g_Settings.textEncoding.toLatin1()));

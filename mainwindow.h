@@ -14,7 +14,7 @@
 #define COLOR_RED       QColor(200,0,0)
 #define COLOR_GREEN     QColor(0,120,0)
 #define COLOR_BLUE      QColor(0,0,200)
-#define COLOR_ORANGE    QColor(255,168,88)
+#define COLOR_BLACK     QColor(0,0,0)
 
 ///////////////////////////////////////////////////////////////////////////////
 namespace Ui
@@ -44,7 +44,7 @@ class MainWindow : public QMainWindow
         QProgressDialog *progress;
         bool m_bCanceled;
         bool m_bStartup;
-        int m_timeStamp;
+        bool m_timeStamp;
 
         void setConnected(bool connected);
         void setAsciiData(QByteArray &data, QColor color);

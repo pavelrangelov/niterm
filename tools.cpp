@@ -9,25 +9,25 @@
 void MainWindow::setAsciiData(QByteArray &data, QColor color)
 {
     QString text;
+    static bool crlf = false;
 
     for (int i=0; i<data.length(); i++)
     {
         QChar ch = data.at(i);
 
-        if (m_timeStamp != -1)
+        if (m_timeStamp && crlf)
         {
-            if (ch == m_timeStamp)
+            crlf = false;
+
+            text += "[";
+            text += QDateTime::currentDateTime().toString("hh:mm:ss.zzz");
+            text += "]";
+
+            appendText(text, COLOR_BLACK);
+
+            if (text.length())
             {
-                if (text.length())
-                {
-                    appendText(text, color);
-                }
-
-                text += "[";
-                text += QDateTime::currentDateTime().toString("hh:mm:ss.zzz");
-                text += "]";
-
-                appendText(text, COLOR_ORANGE);
+                appendText(text, color);
             }
         }
 
@@ -49,6 +49,7 @@ void MainWindow::setAsciiData(QByteArray &data, QColor color)
             if (ch == '\n')
             {
                 text += '\r';
+                crlf = true;
             }
 
             appendText(text, COLOR_GREEN);

@@ -60,11 +60,8 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent), ui(new Ui::Se
     ui->fontComboBox->setCurrentText(g_Settings.fontName);
     ui->spinFontSize->setValue(g_Settings.fontSize);
 
-    ui->comboTimestamp->addItem("None");
-    for (int i=0; i<256; i++)
-    {
-        ui->comboTimestamp->addItem(QString("0x%1").arg(i, 2, 16, QChar('0')));
-    }
+    ui->comboTimestamp->addItem("Disable");
+    ui->comboTimestamp->addItem("Enable");
     ui->comboTimestamp->setCurrentText(g_Settings.timeStamp);
 }
 
