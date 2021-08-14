@@ -388,7 +388,7 @@ void MainWindow::loadSettings()
 
     restoreGeometry(settings.value(STORE_GEOMETRY).toByteArray());
 
-    #ifdef WIN32
+    #ifdef Q_OS_WIN
     g_Settings.comPort = settings.value(STORE_COMPORT, "COM1").toString();                          // 1
     #else
     g_Settings.comPort = settings.value(STORE_COMPORT, "ttyS0").toString();                         // 1
@@ -401,7 +401,7 @@ void MainWindow::loadSettings()
     g_Settings.flowControlIndex = settings.value(STORE_FLOWCONTROL, 0).toInt();                     // 6
     g_Settings.charDelay        = settings.value(STORE_CHARDELAY,   0).toInt();                     // 7
     g_Settings.textEncoding     = settings.value(STORE_ENCODING,    "System").toString();           // 8
-    #ifdef WIN32
+    #ifdef Q_OS_WIN
     g_Settings.fontName         = settings.value(STORE_FONTNAME,    "Courier New").toString();      // 9
     #else
     g_Settings.fontName         = settings.value(STORE_FONTNAME,    "Monospace").toString();        // 9
@@ -460,8 +460,6 @@ void MainWindow::saveSettings()
 ///////////////////////////////////////////////////////////////////////////////
 void MainWindow::updateSettings()
 {
-    bool ok;
-
     if (g_Settings.timeStamp == "Disable")
     {
         m_timeStamp = false;

@@ -106,7 +106,7 @@ WSerialPort::~WSerialPort()
 ///////////////////////////////////////////////////////////////////////////////
 bool WSerialPort::connect()
 {
-    #ifdef WIN32
+    #ifdef Q_OS_WIN
     QString cname(g_Settings.comPort);
 
     int index = cname.indexOf("(COM");
