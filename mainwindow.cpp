@@ -304,8 +304,8 @@ void MainWindow::slot_pinoutReadTimerTimeout()
         ui->checkDSR->setChecked(!!(pins & QSerialPort::DataSetReadySignal));
         ui->checkRNG->setChecked(!!(pins & QSerialPort::RingIndicatorSignal));
         ui->checkCTS->setChecked(!!(pins & QSerialPort::ClearToSendSignal));
-        ui->checkDTR->setChecked(!!(pins & QSerialPort::DataTerminalReadySignal));
-        ui->checkRTS->setChecked(!!(pins & QSerialPort::RequestToSendSignal));
+        //ui->checkDTR->setChecked(!!(pins & QSerialPort::DataTerminalReadySignal));
+        //ui->checkRTS->setChecked(!!(pins & QSerialPort::RequestToSendSignal));
     }
 }
 
@@ -336,7 +336,12 @@ void MainWindow::setConnected(bool connected)
         m_bConnected = true;
         ui->action_Connect->setIcon(QIcon(":/images/48x48/disconnect.png"));
 
-        enablePinsCheckBoxes(g_Settings.flowControlIndex != 1);
+        if (g_Settings.flowControlIndex != 1) {
+            enablePinsCheckBoxes(true);
+            m_serialPort->setRequestToSend(false);
+            m_serialPort->setDataTerminalReady(false);
+        }
+
         ui->btnSendFile->setEnabled(true);
 
         title = APP_NAME;
