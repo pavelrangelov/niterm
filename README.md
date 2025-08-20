@@ -1,4 +1,6 @@
-Serial terminal with macro support.
+<div align="center">
+  <h3>Serial terminal with macro support.</h3>
+</div>
 
 <img src="doc/Screenshot_01.png"/>
 
