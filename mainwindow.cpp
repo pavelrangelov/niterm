@@ -21,8 +21,7 @@ const QString checkStyle =
 "QCheckBox::indicator::disabled{image: url(:/images/check-disabled.png);}";
 
 ///////////////////////////////////////////////////////////////////////////////
-MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
-{
+MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow) {
     ui->setupUi(this);
 
     setWindowIcon(QIcon(":/images/main.png"));
@@ -56,8 +55,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     connect(m_serialPort, SIGNAL(readyRead()), this, SLOT(slot_serialDataReady()));
     connect(m_serialPort, SIGNAL(errorOccurred(QSerialPort::SerialPortError)), this, SLOT(slot_serialPortError(QSerialPort::SerialPortError)));
-
     connect(ui->editInput, SIGNAL(keyPressed(QString)), this, SLOT(slot_keyPressed(QString)));
+    connect(this, SIGNAL(signal_dataReady(QByteArray&)), this, SLOT(slot_updateUI(QByteArray&)));
 
     m_pinoutsReadTimer = new QTimer(this);
     m_pinoutsReadTimer->setInterval(500);
@@ -70,23 +69,17 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-MainWindow::~MainWindow()
-{
-    if (m_serialPort != NULL)
-    {
+MainWindow::~MainWindow() {
+    if (m_serialPort != NULL) {
         m_serialPort->close();
-
         delete m_serialPort;
         m_serialPort = NULL;
     }
-
-
     delete ui;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MainWindow::closeEvent(QCloseEvent* event)
-{
+void MainWindow::closeEvent(QCloseEvent* event) {
     QSettings settings;
     settings.setValue(STORE_GEOMETRY, saveGeometry());
 
@@ -95,12 +88,9 @@ void MainWindow::closeEvent(QCloseEvent* event)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MainWindow::on_action_Connect_triggered()
-{
-    if (!m_bConnected)
-    {
-        if (m_serialPort->connect())
-        {
+void MainWindow::on_action_Connect_triggered() {
+    if (!m_bConnected) {
+        if (m_serialPort->connect()) {
             ui->editOutputAscii->clear();
             ui->editOutputHex->clear();
 
@@ -109,14 +99,10 @@ void MainWindow::on_action_Connect_triggered()
 
             setConnected(true);
             m_pinoutsReadTimer->start();
-        }
-        else
-        {
+        } else {
             QMessageBox::critical(this, APP_NAME, tr("Failed to connect: %1").arg(m_serialPort->errorString()));
         }
-    }
-    else
-    {
+    } else {
         m_serialPort->disconnect();
         m_pinoutsReadTimer->stop();
         setConnected(false);
@@ -124,43 +110,37 @@ void MainWindow::on_action_Connect_triggered()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MainWindow::on_action_Settings_triggered()
-{
+void MainWindow::on_action_Settings_triggered() {
     m_serialPort->disconnect();
     setConnected(false);
 
     SettingsDialog dialog(this);
 
-    if (dialog.exec() == QDialog::Accepted)
-    {
+    if (dialog.exec() == QDialog::Accepted) {
         saveSettings();
         updateSettings();
     }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MainWindow::on_action_About_triggered()
-{
+void MainWindow::on_action_About_triggered() {
     HelpDialog dialog(this);
     dialog.exec();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MainWindow::on_btnOutputClear_clicked()
-{
+void MainWindow::on_btnOutputClear_clicked() {
     ui->editOutputAscii->clear();
     ui->editOutputHex->clear();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MainWindow::on_btnInputClear_clicked()
-{
+void MainWindow::on_btnInputClear_clicked() {
     ui->editInput->clear();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MainWindow::on_btnMacros_clicked()
-{
+void MainWindow::on_btnMacros_clicked() {
     MacrosDialog *dialog = new MacrosDialog(this);
     dialog->setModal(false);
 
@@ -174,28 +154,24 @@ void MainWindow::on_btnMacros_clicked()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MainWindow::on_btnSendFile_clicked()
-{
+void MainWindow::on_btnSendFile_clicked() {
     QFile file;
     char ch[1];
     QByteArray tmp(4,0);
 
     QString fileName = chooseSendFile();
 
-    if (!m_bConnected)
-    {
+    if (!m_bConnected) {
         return;
     }
 
-    if (fileName.isEmpty())
-    {
+    if (fileName.isEmpty()) {
         return;
     }
 
     file.setFileName(fileName);
 
-    if (!file.open(QFile::ReadOnly))
-    {
+    if (!file.open(QFile::ReadOnly)) {
         QMessageBox::critical(this, APP_NAME, tr("Failed to open file: %1").arg(fileName));
         return;
     }
@@ -214,8 +190,7 @@ void MainWindow::on_btnSendFile_clicked()
 
     const char *ptr = data.constData();
 
-    for (int i=0; i<data.length(); i++)
-    {
+    for (int i=0; i<data.length(); i++) {
         ch[0] = ptr[i];
 
         m_serialPort->write(ch, 1);
@@ -227,13 +202,11 @@ void MainWindow::on_btnSendFile_clicked()
 
         delay(g_Settings.charDelay);
 
-        if (i%100)
-        {
+        if (i%100) {
             progress->setValue(i);
         }
 
-        if (m_bCanceled)
-        {
+        if (m_bCanceled) {
             break;
         }
     }
@@ -244,58 +217,49 @@ void MainWindow::on_btnSendFile_clicked()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MainWindow::on_checkDTR_stateChanged(int state)
-{
-    if (m_bConnected)
-    {
+void MainWindow::on_checkDTR_stateChanged(int state) {
+    if (m_bConnected) {
         m_serialPort->setDataTerminalReady(state == Qt::Checked);
     }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MainWindow::on_checkRTS_stateChanged(int state)
-{
-    if (m_bConnected)
-    {
+void MainWindow::on_checkRTS_stateChanged(int state) {
+    if (m_bConnected) {
         m_serialPort->setRequestToSend(state == Qt::Checked);
     }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MainWindow::slot_writeData(QByteArray &data)
-{
+void MainWindow::slot_writeData(QByteArray &data) {
     m_serialPort->write(data);
-
     setAsciiData(data, COLOR_BLUE);
     setHexData(data, COLOR_BLUE);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MainWindow::slot_serialDataReady()
-{
+void MainWindow::slot_serialDataReady() {
     QByteArray data = m_serialPort->readAll();
-
-    setAsciiData(data, COLOR_RED);
-    setHexData(data, COLOR_RED);
-
     emit signal_dataReady(data);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MainWindow::slot_keyPressed(QString text)
-{
-    if (m_bConnected)
-    {
+void MainWindow::slot_updateUI(QByteArray &data) {
+    setAsciiData(data, COLOR_RED);
+    setHexData(data, COLOR_RED);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void MainWindow::slot_keyPressed(QString text) {
+    if (m_bConnected) {
         QByteArray ba = text.toLocal8Bit();
         slot_writeData(ba);
     }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MainWindow::slot_pinoutReadTimerTimeout()
-{
-    if (m_bConnected)
-    {
+void MainWindow::slot_pinoutReadTimerTimeout() {
+    if (m_bConnected) {
         m_bStartup = true;
 
         QSerialPort::PinoutSignals pins = m_serialPort->pinoutSignals();
@@ -310,16 +274,13 @@ void MainWindow::slot_pinoutReadTimerTimeout()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MainWindow::slot_progressCanceled()
-{
+void MainWindow::slot_progressCanceled() {
     m_bCanceled = true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MainWindow::slot_serialPortError(QSerialPort::SerialPortError error)
-{
-    if (m_bConnected && m_bStartup && error == QSerialPort::ResourceError)
-    {
+void MainWindow::slot_serialPortError(QSerialPort::SerialPortError error) {
+    if (m_bConnected && m_bStartup && error == QSerialPort::ResourceError) {
         m_pinoutsReadTimer->stop();
         m_serialPort->disconnect();
         setConnected(false);
@@ -327,12 +288,10 @@ void MainWindow::slot_serialPortError(QSerialPort::SerialPortError error)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MainWindow::setConnected(bool connected)
-{
+void MainWindow::setConnected(bool connected) {
     QString title;
 
-    if (connected)
-    {
+    if (connected) {
         m_bConnected = true;
         ui->action_Connect->setIcon(QIcon(":/images/48x48/disconnect.png"));
 
@@ -357,17 +316,14 @@ void MainWindow::setConnected(bool connected)
         title += QString("%1").arg(m_serialPort->StopBitsArray[g_Settings.stopBitsIndex]);
         title += "; ";
 
-        switch (g_Settings.flowControlIndex)
-        {
+        switch (g_Settings.flowControlIndex) {
             case 0: title += "None"; break;
             case 1: title += "Hardware"; break;
             case 2: title += "Software"; break;
         }
 
         setWindowTitle(title);
-    }
-    else
-    {
+    } else {
         m_bConnected = false;
         m_bStartup = false;
 
@@ -387,8 +343,7 @@ void MainWindow::setConnected(bool connected)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MainWindow::loadSettings()
-{
+void MainWindow::loadSettings() {
     QSettings settings;
 
     restoreGeometry(settings.value(STORE_GEOMETRY).toByteArray());
@@ -416,9 +371,7 @@ void MainWindow::loadSettings()
     g_Settings.repeatAll        = settings.value(STORE_MACROSREPT,  false).toBool();                // 12
     g_Settings.timeStamp        = settings.value(STORE_TIMESTAMP,   "Disable").toString();          // 13
 
-    if (g_Settings.timeStamp != "Disable" &&
-        g_Settings.timeStamp != "Enable")
-    {
+    if (g_Settings.timeStamp != "Disable" && g_Settings.timeStamp != "Enable") {
         g_Settings.timeStamp = "Disable";
     }
 
@@ -434,8 +387,7 @@ void MainWindow::loadSettings()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MainWindow::saveSettings()
-{
+void MainWindow::saveSettings() {
     QSettings settings;
 
     settings.setValue(STORE_COMPORT,        g_Settings.comPort);            // 1
@@ -463,14 +415,10 @@ void MainWindow::saveSettings()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MainWindow::updateSettings()
-{
-    if (g_Settings.timeStamp == "Disable")
-    {
+void MainWindow::updateSettings() {
+    if (g_Settings.timeStamp == "Disable") {
         m_timeStamp = false;
-    }
-    else
-    {
+    } else {
         m_timeStamp = true;
     }
 
@@ -482,8 +430,7 @@ void MainWindow::updateSettings()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MainWindow::initVars()
-{
+void MainWindow::initVars() {
     m_encodingList
         << "System"
         << "IBM 850"
@@ -520,8 +467,7 @@ void MainWindow::initVars()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-QString MainWindow::chooseSendFile()
-{
+QString MainWindow::chooseSendFile() {
     QSettings	settings;
     QStringList	fileNames;
     QString		fileFilters;
@@ -537,8 +483,7 @@ QString MainWindow::chooseSendFile()
     fileDialog.setFileMode(QFileDialog::ExistingFile);
     fileDialog.setAcceptMode(QFileDialog::AcceptOpen);
 
-    if (fileDialog.exec() == QDialog::Accepted)
-    {
+    if (fileDialog.exec() == QDialog::Accepted) {
         fileNames	= fileDialog.selectedFiles();
         fileName	= fileNames[0];
         QDir dir	= fileDialog.directory();
@@ -550,11 +495,9 @@ QString MainWindow::chooseSendFile()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MainWindow::delay(qint64 milliseconds)
-{
+void MainWindow::delay(qint64 milliseconds) {
     qint64 timeToExit = QDateTime::currentMSecsSinceEpoch() + milliseconds;
-    while (timeToExit > QDateTime::currentMSecsSinceEpoch())
-    {
+    while (timeToExit > QDateTime::currentMSecsSinceEpoch()) {
         QApplication::processEvents(QEventLoop::AllEvents, 100);
     }
 }

@@ -80,6 +80,7 @@ class MainWindow : public QMainWindow
         void slot_writeData(QByteArray &data);
         void slot_progressCanceled();
         void slot_serialPortError(QSerialPort::SerialPortError);
+        void slot_updateUI(QByteArray &data);
 
     signals:
         void closed();
