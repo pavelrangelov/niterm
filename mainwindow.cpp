@@ -55,7 +55,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     m_serialPort = new WSerialPort();
 
     connect(m_serialPort, SIGNAL(readyRead()), this, SLOT(slot_serialDataReady()));
-    connect(m_serialPort, SIGNAL(error(QSerialPort::SerialPortError)), this, SLOT(slot_serialPortError(QSerialPort::SerialPortError)));
+    connect(m_serialPort, SIGNAL(errorOccurred(QSerialPort::SerialPortError)), this, SLOT(slot_serialPortError(QSerialPort::SerialPortError)));
 
     connect(ui->editInput, SIGNAL(keyPressed(QString)), this, SLOT(slot_keyPressed(QString)));
 
@@ -515,7 +515,7 @@ void MainWindow::initVars()
         << "UTF-16"
         << "UTF-32";
 
-    m_previousChar = 0;
+    m_previousChar = QChar(0);
     m_timeStamp = -1;
 }
 

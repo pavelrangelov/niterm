@@ -31,7 +31,7 @@ void MainWindow::setAsciiData(QByteArray &data, QColor color)
             }
         }
 
-        if (ch >= 0x20)
+        if (ch.toLatin1() >= 0x20)
         {
             text += data.at(i);
         }

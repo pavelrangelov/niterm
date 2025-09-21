@@ -8,6 +8,7 @@
 #include <QFont>
 #include <QMessageBox>
 #include <QTime>
+#include <QRandomGenerator>
 
 #include "macrosdialog.h"
 #include "ui_macrosdialog.h"
@@ -52,8 +53,8 @@ MacrosDialog::MacrosDialog(QWidget *parent) : QDialog(parent), ui(new Ui::Macros
     QFont font(g_Settings.fontName, g_Settings.fontSize);
     ui->table->setFont(font);
 
-    qsrand(QTime::currentTime().msecsSinceStartOfDay());
-    m_SeqNum = (quint8)(qrand() % (0xff-0x20) + 0x20);
+    QRandomGenerator rg(QTime::currentTime().msecsSinceStartOfDay());
+    m_SeqNum = (quint8)(rg.generate() % (0xff-0x20) + 0x20);
 
     m_RowId = 0;
     m_SenderRow = -1;

@@ -44,7 +44,7 @@ bool MacrosDialog::saveDocument(const QString &filename)
     }
 
     QTextStream ts(&file);
-    ts.setCodec("UTF-8");
+    ts.setEncoding(QStringConverter::Utf8);
     ts << "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\" ?>\r\n";
     ts << doc.toString();
 

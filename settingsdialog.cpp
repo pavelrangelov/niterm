@@ -116,7 +116,7 @@ QString SettingsDialog::parsePort(const QString &text)
 {
     QString portName = text;
 
-    int i = text.indexOf(0x20);
+    int i = text.indexOf(QChar(0x20));
 
     if (i != -1)
     {
