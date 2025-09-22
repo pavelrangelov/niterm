@@ -28,16 +28,14 @@
 
 #define ECR_SYN_TOUT        500
 
-class ItemClass
-{
+class ItemClass {
     public:
         QString command;
         QString data;
         QString response;
         QString comment;
 
-        ItemClass()
-        {
+        ItemClass() {
             command.clear();
             data.clear();
             response.clear();
@@ -46,14 +44,12 @@ class ItemClass
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-namespace Ui
-{
+namespace Ui {
     class MacrosDialog;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-class MacrosDialog : public QDialog
-{
+class MacrosDialog : public QDialog {
     Q_OBJECT
 
     public:

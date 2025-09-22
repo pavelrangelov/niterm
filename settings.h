@@ -5,7 +5,7 @@
 
 #define APP_NAME "NiTerm"
 #define ORG_NAME "Nifelheim"
-#define APP_VERS "1.01"
+#define APP_VERS "1.02"
 
 #define STORE_GEOMETRY      "APP/Geometry"
 #define STORE_ENCODING      "APP/Encoding"
@@ -26,8 +26,7 @@
 #define STORE_MACROSREPT    "MACROS/Repeat"
 
 ///////////////////////////////////////////////////////////////////////////////
-typedef struct
-{
+typedef struct {
     QString comPort;
     int baudRateIndex;
     int dataBitsIndex;

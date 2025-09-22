@@ -13,8 +13,7 @@
 #define ERR_PARSE_CSUM      4
 
 ///////////////////////////////////////////////////////////////////////////////
-QByteArray MacrosDialog::makeEcrProto(quint8 command, QByteArray data)
-{
+QByteArray MacrosDialog::makeEcrProto(quint8 command, QByteArray data) {
     QByteArray arr;
     QByteArray tmp;
     quint16 len;
@@ -30,8 +29,7 @@ QByteArray MacrosDialog::makeEcrProto(quint8 command, QByteArray data)
 
     len = (quint16)tmp.length() + 0x20;
 
-    if (len > 0xff)
-    {
+    if (len > 0xff) {
         return arr;
     }
 
@@ -46,18 +44,15 @@ QByteArray MacrosDialog::makeEcrProto(quint8 command, QByteArray data)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-quint8 MacrosDialog::getSeqNum()
-{
-    if (++m_SeqNum < 0x20)
-    {
+quint8 MacrosDialog::getSeqNum() {
+    if (++m_SeqNum < 0x20) {
         m_SeqNum = 0x20;
     }
     return m_SeqNum;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-QByteArray MacrosDialog::checkSum(const QByteArray data)
-{
+QByteArray MacrosDialog::checkSum(const QByteArray data) {
     char buff[10];
     const char* ptr;
     int i;
@@ -66,8 +61,7 @@ QByteArray MacrosDialog::checkSum(const QByteArray data)
 
     ptr = data.data();
 
-    for (i=0,sum=0; i<data.length(); i++)
-    {
+    for (i=0,sum=0; i<data.length(); i++) {
         sum += (unsigned char)ptr[i];
     }
 
@@ -75,10 +69,8 @@ QByteArray MacrosDialog::checkSum(const QByteArray data)
 
     // 'A'->0x3A, 'B'->0x3B, ...
 
-    for (i=0; i<4; i++)
-    {
-        if (buff[i] > '9')
-        {
+    for (i=0; i<4; i++) {
+        if (buff[i] > '9') {
             buff[i] -= 0x07;
         }
     }
@@ -89,8 +81,7 @@ QByteArray MacrosDialog::checkSum(const QByteArray data)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MacrosDialog::startEcrCom(int row)
-{
+void MacrosDialog::startEcrCom(int row) {
     quint8 command = convertCommand(ui->table->item(row, COL_MACRO_COMMAND)->text().toLatin1());
     QByteArray data = convertData(ui->table->item(row, COL_MACRO_DATA)->text().toLocal8Bit());
 
@@ -104,61 +95,51 @@ void MacrosDialog::startEcrCom(int row)
     m_EcrResult = ERR_COMM;
     m_Data.clear();
 
-    if (!temp.isEmpty())
-    {
+    if (!temp.isEmpty()) {
         emit signal_writeData(temp);
     }
 
-    for (int row=0; row<ui->table->rowCount(); row++)
-    {
+    for (int row=0; row<ui->table->rowCount(); row++) {
         QPushButton *button = qobject_cast<QPushButton*>(ui->table->cellWidget(row, COL_MACRO_BUTTON));
         button->setEnabled(false);
     }
 
-    while (m_EcrRun == true && m_Cancel == false)
-    {
+    while (m_EcrRun == true && m_Cancel == false) {
         qApp->processEvents();
     }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MacrosDialog::stopEcrCom()
-{
-    if (m_EcrResult != ERR_NO)
-    {
+void MacrosDialog::stopEcrCom() {
+    if (m_EcrResult != ERR_NO) {
         ui->table->item(m_SenderRow, COL_MACRO_RESPONSE)->setText(getErrorText(m_EcrResult));
     }
 
     m_Data.clear();
     m_EcrRun = false;
 
-    for (int row=0; row<ui->table->rowCount(); row++)
-    {
+    for (int row=0; row<ui->table->rowCount(); row++) {
         QPushButton *button = qobject_cast<QPushButton*>(ui->table->cellWidget(row, COL_MACRO_BUTTON));
         button->setEnabled(true);
     }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-bool MacrosDialog::parseEcrFrame(QByteArray data)
-{
+bool MacrosDialog::parseEcrFrame(QByteArray data) {
     int beg;
     int end;
 
     beg = data.indexOf(ASCII_SOH);
-    if (beg == -1)
-    {
+    if (beg == -1) {
         return false;
     }
 
     end = data.indexOf(ASCII_ETX);
-    if (end == -1)
-    {
+    if (end == -1) {
         return false;
     }
 
-    if (end <= beg)
-    {
+    if (end <= beg) {
         return false;
     }
 
@@ -166,8 +147,7 @@ bool MacrosDialog::parseEcrFrame(QByteArray data)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int MacrosDialog::parseEcrAnswer(QByteArray data)
-{
+int MacrosDialog::parseEcrAnswer(QByteArray data) {
     m_EcrAnswer.clear();
 
     int beg = data.indexOf(ASCII_SOH);
@@ -179,20 +159,17 @@ int MacrosDialog::parseEcrAnswer(QByteArray data)
     QByteArray csum = data.right(4);
     data.chop(4);
 
-    if (!data.endsWith(ASCII_ENQ))
-    {
+    if (!data.endsWith(ASCII_ENQ)) {
         return ERR_PARSE_FRAME;
     }
 
     quint8 len = (quint8)data.at(0) - 0x20;
 
-    if ((quint8)data.length() != len || len < 10)
-    {
+    if ((quint8)data.length() != len || len < 10) {
         return ERR_PARSE_LENGTH;
     }
 
-    if (csum != checkSum(data))
-    {
+    if (csum != checkSum(data)) {
         return ERR_PARSE_CSUM;
     }
 
@@ -201,8 +178,7 @@ int MacrosDialog::parseEcrAnswer(QByteArray data)
     QByteArray status = data.right(6);
     data.chop(6);
 
-    if (!data.endsWith(ASCII_EOT))
-    {
+    if (!data.endsWith(ASCII_EOT)) {
         return ERR_PARSE_FRAME;
     }
 
@@ -218,12 +194,10 @@ int MacrosDialog::parseEcrAnswer(QByteArray data)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-QString MacrosDialog::getErrorText(int error)
-{
+QString MacrosDialog::getErrorText(int error) {
     QString errorText = "Unknown Error";
 
-    switch (error)
-    {
+    switch (error) {
         case ERR_NO:            errorText = "OK"; break;
         case ERR_COMM:          errorText = "Communication Error"; break;
         case ERR_PARSE_FRAME:   errorText = "Frame Error"; break;

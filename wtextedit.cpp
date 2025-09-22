@@ -2,17 +2,14 @@
 #include "wtextedit.h"
 
 ///////////////////////////////////////////////////////////////////////////////
-WTextEdit::WTextEdit(QWidget *parent) : QTextEdit(parent)
-{
+WTextEdit::WTextEdit(QWidget *parent) : QTextEdit(parent) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void WTextEdit::keyPressEvent(QKeyEvent *event)
-{
+void WTextEdit::keyPressEvent(QKeyEvent *event) {
     QString text = event->text();
 
-    if (text == "\r")
-    {
+    if (text == "\r") {
         text += "\n";
     }
 

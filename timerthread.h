@@ -4,8 +4,7 @@
 #include <QThread>
 
 ///////////////////////////////////////////////////////////////////////////////
-class TimerThread : public QThread
-{
+class TimerThread : public QThread {
     Q_OBJECT
 
     public:

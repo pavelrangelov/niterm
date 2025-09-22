@@ -7,8 +7,7 @@
 #define ASCII_TABLE_SIZE    32
 
 ///////////////////////////////////////////////////////////////////////////////
-class WSerialPort : public QSerialPort
-{
+class WSerialPort : public QSerialPort {
     public:
         WSerialPort();
         ~WSerialPort();

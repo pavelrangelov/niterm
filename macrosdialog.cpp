@@ -21,8 +21,7 @@
 #define MACRO_PROTO_CREG    "Cash Register"
 
 ///////////////////////////////////////////////////////////////////////////////
-MacrosDialog::MacrosDialog(QWidget *parent) : QDialog(parent), ui(new Ui::MacrosDialog)
-{
+MacrosDialog::MacrosDialog(QWidget *parent) : QDialog(parent), ui(new Ui::MacrosDialog) {
     QSettings settings;
 
     ui->setupUi(this);
@@ -76,14 +75,11 @@ MacrosDialog::MacrosDialog(QWidget *parent) : QDialog(parent), ui(new Ui::Macros
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-MacrosDialog::~MacrosDialog()
-{
-    if (m_SynTimer != NULL)
-    {
+MacrosDialog::~MacrosDialog() {
+    if (m_SynTimer != NULL) {
         m_SynTimer->terminateThread();
 
-        while (!m_SynTimer->isFinished())
-        {
+        while (!m_SynTimer->isFinished()) {
             qApp->processEvents();
         }
     }
@@ -92,14 +88,12 @@ MacrosDialog::~MacrosDialog()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MacrosDialog::resizeEvent(QResizeEvent *event)
-{
+void MacrosDialog::resizeEvent(QResizeEvent *event) {
     Q_UNUSED(event);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MacrosDialog::closeEvent(QCloseEvent* event)
-{
+void MacrosDialog::closeEvent(QCloseEvent* event) {
     QSettings settings;
 
     emit signal_Cancel();
@@ -116,29 +110,23 @@ void MacrosDialog::closeEvent(QCloseEvent* event)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MacrosDialog::on_comboProto_currentIndexChanged(int index)
-{
+void MacrosDialog::on_comboProto_currentIndexChanged(int index) {
     Q_UNUSED(index);
 
-    if (ui->comboProto->currentText() == MACRO_PROTO_CREG || ui->comboProto->currentText() == MACRO_PROTO_RESP)
-    {
+    if (ui->comboProto->currentText() == MACRO_PROTO_CREG || ui->comboProto->currentText() == MACRO_PROTO_RESP) {
         ui->table->showColumn(COL_MACRO_COMMAND);
         ui->table->showColumn(COL_MACRO_RESPONSE);
-    }
-    else
-    {
+    } else {
         ui->table->hideColumn(COL_MACRO_COMMAND);
         ui->table->hideColumn(COL_MACRO_RESPONSE);
     }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MacrosDialog::on_btnInsertAbove_clicked()
-{
+void MacrosDialog::on_btnInsertAbove_clicked() {
     int row = ui->table->currentRow();
 
-    if (row == -1 || row == 0)
-    {
+    if (row == -1 || row == 0) {
         row = 0;
     }
 
@@ -146,16 +134,12 @@ void MacrosDialog::on_btnInsertAbove_clicked()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MacrosDialog::on_btnInsertBellow_clicked()
-{
+void MacrosDialog::on_btnInsertBellow_clicked() {
     int row = ui->table->currentRow();
 
-    if (row == -1)
-    {
+    if (row == -1) {
         row = 0;
-    }
-    else
-    {
+    } else {
         row ++;
     }
 
@@ -163,34 +147,28 @@ void MacrosDialog::on_btnInsertBellow_clicked()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MacrosDialog::on_btnSave_clicked()
-{
+void MacrosDialog::on_btnSave_clicked() {
     QString fileName = chooseSaveFile();
 
-    if (!fileName.isEmpty())
-    {
+    if (!fileName.isEmpty()) {
         saveDocument(fileName);
     }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MacrosDialog::on_btnOpen_clicked()
-{
+void MacrosDialog::on_btnOpen_clicked() {
     QString fileName = chooseOpenFile();
 
-    if (!fileName.isEmpty())
-    {
+    if (!fileName.isEmpty()) {
         loadDocument(fileName);
     }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MacrosDialog::on_btnRemove_clicked()
-{
+void MacrosDialog::on_btnRemove_clicked() {
     int row = getSelectedRow();
 
-    if (row == -1)
-    {
+    if (row == -1) {
         QMessageBox::information(this, APP_NAME, tr("No row is selected."));
         return;
     }
@@ -199,47 +177,38 @@ void MacrosDialog::on_btnRemove_clicked()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MacrosDialog::slot_buttonClicked()
-{
+void MacrosDialog::slot_buttonClicked() {
     QPushButton *button = qobject_cast<QPushButton*>(sender());
 
-    if (!m_Connected)
-    {
+    if (!m_Connected) {
         QMessageBox::information(this, APP_NAME, tr("Not connected."));
         return;
     }
 
-    if (!button)
-    {
+    if (!button) {
         return;
     }
 
     QVariant var = button->property("id");
 
-    if (!var.isValid())
-    {
+    if (!var.isValid()) {
         return;
     }
 
     m_SenderRow = getRowByProperty(var.toInt());
 
-    if (ui->comboProto->currentText() == MACRO_PROTO_NONE || ui->comboProto->currentText() == MACRO_PROTO_RESP)
-    {
+    if (ui->comboProto->currentText() == MACRO_PROTO_NONE || ui->comboProto->currentText() == MACRO_PROTO_RESP) {
         QByteArray data = convertData(ui->table->item(m_SenderRow, COL_MACRO_DATA)->text().toLocal8Bit());
         emit signal_writeData(data);
-    }
-    else
-    if (ui->comboProto->currentText() == MACRO_PROTO_CREG)
-    {
+    } else
+    if (ui->comboProto->currentText() == MACRO_PROTO_CREG) {
         startEcrCom(m_SenderRow);
     }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MacrosDialog::on_btnSendAll_clicked()
-{
-    if (!m_Connected)
-    {
+void MacrosDialog::on_btnSendAll_clicked() {
+    if (!m_Connected) {
         QMessageBox::information(this, APP_NAME, tr("Not connected."));
         return;
     }
@@ -248,67 +217,54 @@ void MacrosDialog::on_btnSendAll_clicked()
 
     m_Cancel = false;
 
-    do
-    {
-        for (int row=0; row<ui->table->rowCount(); row++)
-        {
-            if (ui->comboProto->currentText() == MACRO_PROTO_NONE || ui->comboProto->currentText() == MACRO_PROTO_RESP)
-            {
+    do {
+        for (int row=0; row<ui->table->rowCount(); row++) {
+            if (ui->comboProto->currentText() == MACRO_PROTO_NONE || ui->comboProto->currentText() == MACRO_PROTO_RESP) {
                 QByteArray data = convertData(ui->table->item(row, COL_MACRO_DATA)->text().toLocal8Bit());
                 emit signal_writeData(data);
-            }
-            else
+            } else
             if (ui->comboProto->currentText() == MACRO_PROTO_CREG)
             {
                 m_SenderRow = row;
                 startEcrCom(m_SenderRow);
             }
 
-            if (m_Cancel)
-            {
+            if (m_Cancel) {
                 break;
             }
 
-            if (t > 0)
-            {
+            if (t > 0) {
                 delay(t);
             }
         }
-    }
-    while (ui->checkRepeat->isChecked() && !m_Cancel);
+    } while (ui->checkRepeat->isChecked() && !m_Cancel);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MacrosDialog::slot_synTout()
-{
+void MacrosDialog::slot_synTout() {
     stopEcrCom();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int MacrosDialog::getRowByProperty(int value)
-{
+int MacrosDialog::getRowByProperty(int value) {
     bool ok;
 
-    for (int row=0; row<ui->table->rowCount(); row++)
-    {
+    for (int row=0; row<ui->table->rowCount(); row++) {
         QPushButton *button = qobject_cast<QPushButton*>(ui->table->cellWidget(row, COL_MACRO_BUTTON));
 
         QVariant var = button->property("id");
 
-        if (!var.isValid())
-        {
+        if (!var.isValid()) {
             return 0;
         }
 
         int id = var.toInt(&ok);
 
-        if (!ok)
-        {
+        if (!ok) {
             return 0;
         }
 
-        if (id == value)
-        {
+        if (id == value) {
             return row;
         }
     }
@@ -317,10 +273,8 @@ int MacrosDialog::getRowByProperty(int value)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int MacrosDialog::insertTableRow(int row)
-{
-    if (row == -1)
-    {
+int MacrosDialog::insertTableRow(int row) {
+    if (row == -1) {
         return 0;
     }
 
@@ -344,14 +298,10 @@ int MacrosDialog::insertTableRow(int row)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int MacrosDialog::getSelectedRow()
-{
-    for (int row=0; row<ui->table->rowCount(); row++)
-    {
-        for (int col=1; col<COL_MACRO_LAST; col++)
-        {
-            if (ui->table->item(row,col)->isSelected())
-            {
+int MacrosDialog::getSelectedRow() {
+    for (int row=0; row<ui->table->rowCount(); row++) {
+        for (int col=1; col<COL_MACRO_LAST; col++) {
+            if (ui->table->item(row,col)->isSelected()) {
                 return row;
             }
         }
@@ -361,8 +311,7 @@ int MacrosDialog::getSelectedRow()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-QString MacrosDialog::chooseSaveFile()
-{
+QString MacrosDialog::chooseSaveFile() {
     QSettings	settings;
     QStringList	fileNames;
     QString		fileFilters;
@@ -378,8 +327,7 @@ QString MacrosDialog::chooseSaveFile()
     fileDialog.setFileMode(QFileDialog::AnyFile);
     fileDialog.setAcceptMode(QFileDialog::AcceptSave);
 
-    if (fileDialog.exec() == QDialog::Accepted)
-    {
+    if (fileDialog.exec() == QDialog::Accepted) {
         fileNames	= fileDialog.selectedFiles();
         fileName	= fileNames[0];
         QDir dir	= fileDialog.directory();
@@ -388,8 +336,7 @@ QString MacrosDialog::chooseSaveFile()
 
         int pos = fileName.indexOf('.');
 
-        if (pos == -1)
-        {
+        if (pos == -1) {
             fileName += ".xml";
         }
     }
@@ -398,8 +345,7 @@ QString MacrosDialog::chooseSaveFile()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-QString MacrosDialog::chooseOpenFile()
-{
+QString MacrosDialog::chooseOpenFile() {
     QSettings	settings;
     QStringList	fileNames;
     QString		fileFilters;
@@ -415,8 +361,7 @@ QString MacrosDialog::chooseOpenFile()
     fileDialog.setFileMode(QFileDialog::ExistingFile);
     fileDialog.setAcceptMode(QFileDialog::AcceptOpen);
 
-    if (fileDialog.exec() == QDialog::Accepted)
-    {
+    if (fileDialog.exec() == QDialog::Accepted) {
         fileNames	= fileDialog.selectedFiles();
         fileName	= fileNames[0];
         QDir dir	= fileDialog.directory();
@@ -435,13 +380,10 @@ quint8 MacrosDialog::convertCommand(QByteArray data)
 
     data = data.trimmed();
 
-    if (data[0] == '0' && (data[1] == 'x' || data[1] == 'X'))
-    {
+    if (data[0] == '0' && (data[1] == 'x' || data[1] == 'X')) {
         data = data.remove(0,2);
         cmd = data.toInt(&ok, 16);
-    }
-    else
-    {
+    } else {
         cmd = data.toInt(&ok, 10);
     }
 
@@ -449,26 +391,22 @@ quint8 MacrosDialog::convertCommand(QByteArray data)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-QByteArray MacrosDialog::convertData(QByteArray data)
-{
+QByteArray MacrosDialog::convertData(QByteArray data) {
     QByteArray ba;
     quint8 c, d;
     bool ok;
 
-    while (!data.isEmpty())
-    {
+    while (!data.isEmpty()) {
         c = data.at(0);
         data.remove(0,1);
 
-        if (c == '\\')
-        {
+        if (c == '\\') {
             if (!data.isEmpty())
             {
                 c = data.at(0);
                 data.remove(0,1);
 
-                switch (c)
-                {
+                switch (c) {
                     case 'r':
                         ba += '\r';
                         break;
@@ -496,14 +434,10 @@ QByteArray MacrosDialog::convertData(QByteArray data)
                         ba += c;
                         break;
                 }
-            }
-            else
-            {
+            } else {
                 ba += c;
             }
-        }
-        else
-        {
+        } else {
             ba += c;
         }
     }
@@ -514,34 +448,28 @@ QByteArray MacrosDialog::convertData(QByteArray data)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-QByteArray MacrosDialog::convertFunction(QByteArray data)
-{
+QByteArray MacrosDialog::convertFunction(QByteArray data) {
     QByteArray tmp = data.toUpper();
 
     int i1 = tmp.indexOf("#XOR",0);
 
-    if (i1 != -1)
-    {
+    if (i1 != -1) {
         int i2 = tmp.indexOf('(',i1);
 
-        if (i2 != -1)
-        {
+        if (i2 != -1) {
             int i3 = tmp.indexOf(')',i2);
 
-            if (i3 != -1)
-            {
+            if (i3 != -1) {
                 QByteArray token = removeSpaces(tmp.mid(i1, i3-i1+1));
                 token.remove(0,4);
 
-                if (checkSyntax(token))
-                {
+                if (checkSyntax(token)) {
                     token.remove(0,1);
                     token.chop(1);
 
                     int i4 = token.indexOf('-');
 
-                    if (i4 != -1)
-                    {
+                    if (i4 != -1) {
                         QByteArray tmp1 = token.left(i4);
                         QByteArray tmp2 = token.remove(0,i4+1);
 
@@ -549,18 +477,14 @@ QByteArray MacrosDialog::convertFunction(QByteArray data)
 
                         int from = tmp1.toInt(&ok);
 
-                        if (ok)
-                        {
+                        if (ok) {
                             int to = tmp2.toInt(&ok);
 
-                            if (ok)
-                            {
-                                if (from < to && to < tmp.length())
-                                {
+                            if (ok) {
+                                if (from < to && to < tmp.length()) {
                                     quint8 sum = 0;
 
-                                    for (int i=from; i<=to; i++)
-                                    {
+                                    for (int i=from; i<=to; i++) {
                                         sum ^= (quint8)data.at(i);
                                     }
 
@@ -582,51 +506,38 @@ QByteArray MacrosDialog::convertFunction(QByteArray data)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MacrosDialog::slot_dataReady(QByteArray &data)
-{
-    for (int i=0; i<data.length(); i++)
-    {
-        if (data.at(i) != ASCII_SYN)
-        {
+void MacrosDialog::slot_dataReady(QByteArray &data) {
+    for (int i=0; i<data.length(); i++) {
+        if (data.at(i) != ASCII_SYN) {
             m_Data += data.at(i);
         }
     }
 
-    if (ui->comboProto->currentText() == MACRO_PROTO_RESP)
-    {
-        for (int row=0; row<ui->table->rowCount(); row++)
-        {
+    if (ui->comboProto->currentText() == MACRO_PROTO_RESP) {
+        for (int row=0; row<ui->table->rowCount(); row++) {
             QString cmd = ui->table->item(row, COL_MACRO_COMMAND)->text();
 
-            if (cmd.toUpper() == "#ON_RECEIVED")
-            {
+            if (cmd.toUpper() == "#ON_RECEIVED") {
                 QByteArray onrecv = convertData(ui->table->item(row, COL_MACRO_DATA)->text().toLocal8Bit());
                 QByteArray onsend = convertData(ui->table->item(row, COL_MACRO_RESPONSE)->text().toLocal8Bit());
 
-                if (m_Data.indexOf(onrecv) != -1)
-                {
+                if (m_Data.indexOf(onrecv) != -1) {
                     emit signal_writeData(onsend);
                     m_Data.clear();
                 }
             }
         }
-    }
-    else
-    if (ui->comboProto->currentText() == MACRO_PROTO_CREG)
-    {
+    } else
+    if (ui->comboProto->currentText() == MACRO_PROTO_CREG) {
         emit signal_StopTimer();
 
-        if (parseEcrFrame(m_Data))
-        {
+        if (parseEcrFrame(m_Data)) {
             m_EcrResult = parseEcrAnswer(m_Data);
             stopEcrCom();
 
-            if (m_EcrResult == 0)
-            {
+            if (m_EcrResult == 0) {
                 ui->table->item(m_SenderRow, COL_MACRO_RESPONSE)->setText(m_EcrAnswer);
-            }
-            else
-            {
+            } else {
                 ui->table->item(m_SenderRow, COL_MACRO_RESPONSE)->setText(getErrorText(m_EcrResult));
             }
             return;
@@ -637,20 +548,17 @@ void MacrosDialog::slot_dataReady(QByteArray &data)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MacrosDialog::slot_Cancel()
-{
+void MacrosDialog::slot_Cancel() {
     m_Cancel = true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MacrosDialog::slot_connectStatusChanged(bool connected)
-{
+void MacrosDialog::slot_connectStatusChanged(bool connected) {
     m_Connected = connected;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MacrosDialog::setConnectStatus(bool connected)
-{
+void MacrosDialog::setConnectStatus(bool connected) {
     m_Connected = connected;
 }
 
@@ -669,8 +577,7 @@ void MacrosDialog::setConnectStatus(bool connected)
 |   )    |   0   |   1   |   1   |   0   |   0   |
 +--------+---------------------------------------+
 */
-const quint8 MacrosDialog::syntaxArray[5][5] =
-{
+const quint8 MacrosDialog::syntaxArray[5][5] = {
     {1,1,1,0,1},
     {1,0,0,1,0},
     {1,0,0,1,0},
@@ -685,17 +592,14 @@ const quint8 MacrosDialog::syntaxArray[5][5] =
 #define IS_RIGHTBRACE   4
 
 ///////////////////////////////////////////////////////////////////////////////
-bool MacrosDialog::checkSyntax(QByteArray data)
-{
+bool MacrosDialog::checkSyntax(QByteArray data) {
     int len = data.length();
 
-    for (int i=0; i<len-1; i++)
-    {
+    for (int i=0; i<len-1; i++) {
         int curr = getIndexByCharType(data.at(i));
         int next = getIndexByCharType(data.at(i+1));
 
-        if (syntaxArray[curr][next] == 0)
-        {
+        if (syntaxArray[curr][next] == 0) {
             return false;
         }
     }
@@ -704,8 +608,7 @@ bool MacrosDialog::checkSyntax(QByteArray data)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int MacrosDialog::getIndexByCharType(QChar ch)
-{
+int MacrosDialog::getIndexByCharType(QChar ch) {
     if (ch.isDigit())  return IS_DIGIT;
     if (ch.isLetter()) return (-1);
     if (ch == '+')     return IS_PLUS;
@@ -717,16 +620,13 @@ int MacrosDialog::getIndexByCharType(QChar ch)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-QByteArray MacrosDialog::removeSpaces(QByteArray data)
-{
+QByteArray MacrosDialog::removeSpaces(QByteArray data) {
     QByteArray ba;
 
-    for (int i=0; i<data.length(); i++)
-    {
+    for (int i=0; i<data.length(); i++) {
         quint8 ch = (quint8)data.at(i);
 
-        if (ch != '\x20')
-        {
+        if (ch != '\x20') {
             ba.append(ch);
         }
     }
@@ -735,11 +635,9 @@ QByteArray MacrosDialog::removeSpaces(QByteArray data)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MacrosDialog::delay(qint64 milliseconds)
-{
+void MacrosDialog::delay(qint64 milliseconds) {
     qint64 timeToExit = QDateTime::currentMSecsSinceEpoch() + milliseconds;
-    while (timeToExit > QDateTime::currentMSecsSinceEpoch())
-    {
+    while (timeToExit > QDateTime::currentMSecsSinceEpoch()) {
         QApplication::processEvents(QEventLoop::AllEvents);
     }
 }

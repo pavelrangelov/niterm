@@ -8,23 +8,20 @@
 #include "mainwindow.h"
 
 ///////////////////////////////////////////////////////////////////////////////
-SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent), ui(new Ui::SettingsDialog)
-{
+SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent), ui(new Ui::SettingsDialog) {
     ui->setupUi(this);
 
     QString comPort = g_Settings.comPort;
     QString comDesc = getPortDescripion(g_Settings.comPort);
 
-    if (!comDesc.isEmpty())
-    {
+    if (!comDesc.isEmpty()) {
         comPort += QString(" (%1)").arg(comDesc);
     }
 
     ui->comboComPort->addItems(getPortNames());
     ui->comboComPort->setCurrentText(comPort);
 
-    for (int i=0; i<BAUD_RATES_COUNT; i++)
-    {
+    for (int i=0; i<BAUD_RATES_COUNT; i++) {
         ui->comboBaudRate->addItems(QStringList() << QString("%1").arg(WSerialPort::BaudRatesArray[i]));
     }
     ui->comboBaudRate->setCurrentIndex(g_Settings.baudRateIndex);
@@ -66,14 +63,12 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent), ui(new Ui::Se
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-SettingsDialog::~SettingsDialog()
-{
+SettingsDialog::~SettingsDialog() {
     delete ui;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void SettingsDialog::on_btnOK_clicked()
-{
+void SettingsDialog::on_btnOK_clicked() {
     g_Settings.comPort          = parsePort(ui->comboComPort->currentText());   // 1
     g_Settings.baudRateIndex    = ui->comboBaudRate->currentIndex();            // 2
     g_Settings.dataBitsIndex    = ui->comboDataBits->currentIndex();            // 3
@@ -90,20 +85,16 @@ void SettingsDialog::on_btnOK_clicked()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void SettingsDialog::on_btnCancel_clicked()
-{
+void SettingsDialog::on_btnCancel_clicked() {
     reject();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-QString SettingsDialog::getPortDescripion(const QString &text)
-{
+QString SettingsDialog::getPortDescripion(const QString &text) {
     QString desc = "";
 
-    foreach (QSerialPortInfo spi, QSerialPortInfo::availablePorts())
-    {
-        if (spi.portName() == text)
-        {
+    foreach (QSerialPortInfo spi, QSerialPortInfo::availablePorts()) {
+        if (spi.portName() == text) {
             return spi.description();
         }
     }
@@ -112,14 +103,12 @@ QString SettingsDialog::getPortDescripion(const QString &text)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-QString SettingsDialog::parsePort(const QString &text)
-{
+QString SettingsDialog::parsePort(const QString &text) {
     QString portName = text;
 
     int i = text.indexOf(QChar(0x20));
 
-    if (i != -1)
-    {
+    if (i != -1) {
         portName = text.left(i);
     }
 
@@ -127,18 +116,13 @@ QString SettingsDialog::parsePort(const QString &text)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-QStringList SettingsDialog::getPortNames()
-{
+QStringList SettingsDialog::getPortNames() {
     QStringList list;
 
-    foreach (QSerialPortInfo spi, QSerialPortInfo::availablePorts())
-    {
-        if (spi.description().isEmpty())
-        {
+    foreach (QSerialPortInfo spi, QSerialPortInfo::availablePorts()) {
+        if (spi.description().isEmpty()) {
             list.append(QString("%1").arg(spi.portName()));
-        }
-        else
-        {
+        } else {
             list.append(QString("%1 (%2)").arg(spi.portName()).arg(spi.description()));
         }
     }

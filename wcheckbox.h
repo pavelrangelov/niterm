@@ -6,8 +6,7 @@
 #include <QMouseEvent>
 
 ///////////////////////////////////////////////////////////////////////////////
-class WCheckBox : public QCheckBox
-{
+class WCheckBox : public QCheckBox {
     public:
         WCheckBox(QWidget *parent = 0);
 

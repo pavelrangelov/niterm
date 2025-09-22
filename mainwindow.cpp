@@ -53,7 +53,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     m_serialPort = new WSerialPort();
 
-    connect(m_serialPort, SIGNAL(readyRead()), this, SLOT(slot_serialDataReady()));
+    //connect(m_serialPort, SIGNAL(readyRead()), this, SLOT(slot_serialDataReady()));
     connect(m_serialPort, SIGNAL(errorOccurred(QSerialPort::SerialPortError)), this, SLOT(slot_serialPortError(QSerialPort::SerialPortError)));
     connect(ui->editInput, SIGNAL(keyPressed(QString)), this, SLOT(slot_keyPressed(QString)));
     connect(this, SIGNAL(signal_dataReady(QByteArray&)), this, SLOT(slot_updateUI(QByteArray&)));

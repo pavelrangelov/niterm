@@ -17,14 +17,12 @@
 #define COLOR_BLACK     QColor(0,0,0)
 
 ///////////////////////////////////////////////////////////////////////////////
-namespace Ui
-{
+namespace Ui {
     class MainWindow;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-class MainWindow : public QMainWindow
-{
+class MainWindow : public QMainWindow {
     Q_OBJECT
 
     public:
@@ -59,7 +57,7 @@ class MainWindow : public QMainWindow
         void enablePinsCheckBoxes(bool enable);
         QString chooseSendFile();
         void updateSettings();
-        void appendText(QString &text, const QColor color);
+        void appendText(QByteArray &text, const QColor color);
 
     protected:
         virtual void closeEvent(QCloseEvent *event);

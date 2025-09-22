@@ -3,79 +3,72 @@
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "settings.h"
 
 ///////////////////////////////////////////////////////////////////////////////
-void MainWindow::setAsciiData(QByteArray &data, QColor color)
-{
-    QString text;
+void MainWindow::setAsciiData(QByteArray &data, QColor color) {
+    QByteArray text;
     static bool crlf = false;
 
-    for (int i=0; i<data.length(); i++)
-    {
+    for (int i=0; i<data.length(); i++) {
         QChar ch = data.at(i);
 
-        if (m_timeStamp && crlf)
-        {
+        if (m_timeStamp && crlf) {
             crlf = false;
 
             text += "[";
-            text += QDateTime::currentDateTime().toString("hh:mm:ss.zzz");
+            text += QDateTime::currentDateTime().toString("hh:mm:ss.zzz").toLatin1();
             text += "]";
 
             appendText(text, COLOR_BLACK);
 
-            if (text.length())
-            {
+            if (text.length()) {
                 appendText(text, color);
             }
         }
 
-        if (ch.toLatin1() >= 0x20)
-        {
-            text += data.at(i);
-        }
-        else
-        {
-            if (text.length())
-            {
+        uint8_t t = ch.toLatin1();
+
+        if (t < 0x20) {
+            if (text.length()) {
                 appendText(text, color);
             }
 
             text += "<";
-            text += WSerialPort::ASCII_table[(int)ch.toLatin1()];
+            text += WSerialPort::ASCII_table[(int)ch.toLatin1()].toLatin1();
             text += ">";
 
-            if (ch == '\n')
-            {
+            if (ch == '\n') {
                 text += '\r';
                 crlf = true;
             }
 
             appendText(text, COLOR_GREEN);
+        } else
+        if (t <= 0x80) {
+            text += t;
+        } else {
+            text += t;
         }
 
         m_previousChar = ch;
     }
 
-    if (text.length())
-    {
+    if (text.length()) {
         appendText(text, color);
     }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MainWindow::setHexData(QByteArray &data, QColor color)
-{
+void MainWindow::setHexData(QByteArray &data, QColor color) {
     QString text;
 
     QTextCharFormat format;
     format.setForeground(QBrush(color));
     ui->editOutputAscii->textCursor().setCharFormat(format);
 
-    for (int i=0; i<data.length(); i++)
-    {
-        text += QString("%1 ").arg((quint8)data.at(i), 2, 16, QChar('0'));
+    for (int i=0; i<data.length(); i++) {
+        uint8_t t = (quint8)data.at(i);
+        text += QString("%1 ").arg(t, 2, 16, QChar('0'));
     }
 
     ui->editOutputHex->moveCursor(QTextCursor::End);
@@ -84,7 +77,7 @@ void MainWindow::setHexData(QByteArray &data, QColor color)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MainWindow::appendText(QString &text, const QColor color)
+void MainWindow::appendText(QByteArray &text, const QColor color)
 {
     QTextCharFormat format;
     format.setForeground(QBrush(color));

@@ -11,8 +11,7 @@
 #include "settings.h"
 #include "wserialport.h"
 
-const qint32 WSerialPort::BaudRatesArray[BAUD_RATES_COUNT] =
-{
+const qint32 WSerialPort::BaudRatesArray[BAUD_RATES_COUNT] = {
     QSerialPort::Baud1200,
     QSerialPort::Baud2400,
     QSerialPort::Baud4800,
@@ -24,8 +23,7 @@ const qint32 WSerialPort::BaudRatesArray[BAUD_RATES_COUNT] =
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-const QSerialPort::DataBits WSerialPort::DataBitsArray[4] =
-{
+const QSerialPort::DataBits WSerialPort::DataBitsArray[4] = {
     QSerialPort::Data5,
     QSerialPort::Data6,
     QSerialPort::Data7,
@@ -33,32 +31,28 @@ const QSerialPort::DataBits WSerialPort::DataBitsArray[4] =
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-const QSerialPort::StopBits WSerialPort::StopBitsArray[3] =
-{
+const QSerialPort::StopBits WSerialPort::StopBitsArray[3] = {
     QSerialPort::OneStop,
     QSerialPort::OneAndHalfStop,
     QSerialPort::TwoStop
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-const QSerialPort::Parity WSerialPort::ParityArray[3] =
-{
+const QSerialPort::Parity WSerialPort::ParityArray[3] = {
     QSerialPort::NoParity,
     QSerialPort::EvenParity,
     QSerialPort::OddParity
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-const QSerialPort::FlowControl WSerialPort::FlowControlArray[3] =
-{
+const QSerialPort::FlowControl WSerialPort::FlowControlArray[3] = {
     QSerialPort::NoFlowControl,
     QSerialPort::HardwareControl,
     QSerialPort::SoftwareControl
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-const QString WSerialPort::ASCII_table[ASCII_TABLE_SIZE] =
-{
+const QString WSerialPort::ASCII_table[ASCII_TABLE_SIZE] = {
     "NUL",  // 00
     "SOH",  // 01
     "STX",  // 02
@@ -94,25 +88,21 @@ const QString WSerialPort::ASCII_table[ASCII_TABLE_SIZE] =
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-WSerialPort::WSerialPort()
-{
+WSerialPort::WSerialPort() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-WSerialPort::~WSerialPort()
-{
+WSerialPort::~WSerialPort() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-bool WSerialPort::connect()
-{
+bool WSerialPort::connect() {
     #ifdef Q_OS_WIN
     QString cname(g_Settings.comPort);
 
     int index = cname.indexOf("(COM");
 
-    if (index != -1)
-    {
+    if (index != -1) {
         index++;
         cname = cname.mid(index,5);
         cname.remove(')');
@@ -134,8 +124,7 @@ bool WSerialPort::connect()
 
     close();
 
-    if (!open(QIODevice::ReadWrite))
-    {
+    if (!open(QIODevice::ReadWrite)) {
         return false;
     }
 
@@ -143,7 +132,6 @@ bool WSerialPort::connect()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void WSerialPort::disconnect()
-{
+void WSerialPort::disconnect() {
     close();
 }

@@ -4,8 +4,7 @@
 #include "ui_macrosdialog.h"
 
 ///////////////////////////////////////////////////////////////////////////////
-QDomElement MacrosDialog::paramToNode(QDomDocument &d, const ItemClass &ic)
-{
+QDomElement MacrosDialog::paramToNode(QDomDocument &d, const ItemClass &ic) {
     QDomElement e = d.createElement("Row");
 
     e.setAttribute("Command",   ic.command);
@@ -17,8 +16,7 @@ QDomElement MacrosDialog::paramToNode(QDomDocument &d, const ItemClass &ic)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-bool MacrosDialog::saveDocument(const QString &filename)
-{
+bool MacrosDialog::saveDocument(const QString &filename) {
     QDomDocument doc("NITERM_ML");
     QDomElement root = doc.createElement("Macros");
 
@@ -26,8 +24,7 @@ bool MacrosDialog::saveDocument(const QString &filename)
 
     ItemClass ic;
 
-    for (int i=0; i<ui->table->rowCount(); i++)
-    {
+    for (int i=0; i<ui->table->rowCount(); i++) {
         ic.command	= ui->table->item(i, COL_MACRO_COMMAND) ->text();
         ic.data		= ui->table->item(i, COL_MACRO_DATA)    ->text();
         ic.response = ui->table->item(i, COL_MACRO_RESPONSE)->text();
@@ -38,8 +35,7 @@ bool MacrosDialog::saveDocument(const QString &filename)
 
     QFile file(filename);
 
-    if (!file.open(QIODevice::WriteOnly))
-    {
+    if (!file.open(QIODevice::WriteOnly)) {
         return false;
     }
 
@@ -54,21 +50,18 @@ bool MacrosDialog::saveDocument(const QString &filename)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-bool MacrosDialog::loadDocument(const QString &filename)
-{
+bool MacrosDialog::loadDocument(const QString &filename) {
     clearDocument();
 
     QDomDocument doc("NITERM_ML");
 
     QFile file(filename);
 
-    if (!file.open(QIODevice::ReadOnly))
-    {
+    if (!file.open(QIODevice::ReadOnly)) {
         return false;
     }
 
-    if (!doc.setContent(&file))
-    {
+    if (!doc.setContent(&file)) {
         file.close();
         return false;
     }
@@ -77,19 +70,16 @@ bool MacrosDialog::loadDocument(const QString &filename)
 
     QDomElement root = doc.documentElement();
 
-    if (root.tagName() != "Macros")
-    {
+    if (root.tagName() != "Macros") {
         return false;
     }
 
     QDomNode n = root.firstChild();
 
-    while (!n.isNull())
-    {
+    while (!n.isNull()) {
         QDomElement e = n.toElement();
 
-        if (!e.isNull())
-        {
+        if (!e.isNull()) {
             if (e.tagName() == "Row")
             {
                 ItemClass ic;
@@ -114,12 +104,9 @@ bool MacrosDialog::loadDocument(const QString &filename)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MacrosDialog::clearDocument()
-{
-    if (ui->table->rowCount())
-    {
-        for (int i=ui->table->rowCount()-1; i>=0; i--)
-        {
+void MacrosDialog::clearDocument() {
+    if (ui->table->rowCount()) {
+        for (int i=ui->table->rowCount()-1; i>=0; i--) {
             ui->table->removeRow(i);
         }
     }

@@ -5,8 +5,7 @@
 #include <QKeyEvent>
 
 ///////////////////////////////////////////////////////////////////////////////
-class WTextEdit : public QTextEdit
-{
+class WTextEdit : public QTextEdit {
     Q_OBJECT
 
     public:
