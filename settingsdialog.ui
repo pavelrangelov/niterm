@@ -256,7 +256,7 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="btnOK">
+      <widget class="QPushButton" name="btnOk">
        <property name="text">
         <string>OK</string>
        </property>
@@ -286,7 +286,7 @@
   <tabstop>spinCharDelay</tabstop>
   <tabstop>comboTimestamp</tabstop>
   <tabstop>comboEncoding</tabstop>
-  <tabstop>btnOK</tabstop>
+  <tabstop>btnOk</tabstop>
   <tabstop>btnCancel</tabstop>
  </tabstops>
  <resources/>

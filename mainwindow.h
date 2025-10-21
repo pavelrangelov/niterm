@@ -35,14 +35,14 @@ class MainWindow : public QMainWindow {
     private:
         Ui::MainWindow *ui;
         bool m_bConnected;
-        WSerialPort *m_serialPort;
         QStringList m_encodingList;
-        QTimer *m_pinoutsReadTimer;
         QChar m_previousChar;
-        QProgressDialog *progress;
         bool m_bCanceled;
         bool m_bStartup;
         bool m_timeStamp;
+        QProgressDialog *progress;
+        QTimer *m_pinoutsReadTimer;
+        WSerialPort *m_serialPort;
 
         void setConnected(bool connected);
         void setAsciiData(QByteArray &data, QColor color);
@@ -63,27 +63,27 @@ class MainWindow : public QMainWindow {
         virtual void closeEvent(QCloseEvent *event);
 
     private slots:
-        void on_action_Connect_triggered();
-        void on_action_Settings_triggered();
-        void on_action_About_triggered();
-        void on_btnOutputClear_clicked();
-        void on_btnInputClear_clicked();
-        void on_btnMacros_clicked();
-        void on_btnSendFile_clicked();
-        void on_checkDTR_stateChanged(int state);
-        void on_checkRTS_stateChanged(int state);
-        void slot_serialDataReady();
-        void slot_keyPressed(QString text);
-        void slot_pinoutReadTimerTimeout();
-        void slot_writeData(QByteArray &data);
-        void slot_progressCanceled();
-        void slot_serialPortError(QSerialPort::SerialPortError);
-        void slot_updateUI(QByteArray &data);
+        void doConnect();
+        void setSettings();
+        void doAbout();
+        void clearOutput();
+        void clearInput();
+        void doMacros();
+        void sendFile();
+        void setDTR(int state);
+        void setRTS(int state);
+        void keyPressed(QString text);
+        void pinoutReadTimerTimeout();
+        void hasDataToWrite(QByteArray &data);
+        void progressCanceled();
+        void serialPortError(QSerialPort::SerialPortError);
+        void updateUI(QByteArray &data);
+        void serialDataReady();
 
     signals:
-        void closed();
-        void signal_dataReady(QByteArray &data);
-        void signal_connectStatusChanged(bool connected);
+        void windowClosed();
+        void dataReady(QByteArray &data);
+        void connectStatusChanged(bool connected);
 };
 
 #endif // MAINWINDOW_H

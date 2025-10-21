@@ -77,8 +77,7 @@ void MainWindow::setHexData(QByteArray &data, QColor color) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MainWindow::appendText(QByteArray &text, const QColor color)
-{
+void MainWindow::appendText(QByteArray &text, const QColor color) {
     QTextCharFormat format;
     format.setForeground(QBrush(color));
 
@@ -91,8 +90,7 @@ void MainWindow::appendText(QByteArray &text, const QColor color)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MainWindow::setPinsCheckBoxes(bool state)
-{
+void MainWindow::setPinsCheckBoxes(bool state) {
     ui->checkDSR->setChecked(state);
     ui->checkDCD->setChecked(state);
     ui->checkRNG->setChecked(state);
@@ -102,8 +100,7 @@ void MainWindow::setPinsCheckBoxes(bool state)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MainWindow::enablePinsCheckBoxes(bool enable)
-{
+void MainWindow::enablePinsCheckBoxes(bool enable) {
     ui->checkDSR->setEnabled(enable);
     ui->checkDCD->setEnabled(enable);
     ui->checkRNG->setEnabled(enable);

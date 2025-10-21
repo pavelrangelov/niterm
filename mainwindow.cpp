@@ -51,17 +51,26 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     loadSettings();
     updateSettings();
 
-    m_serialPort = new WSerialPort();
+    QObject::connect(ui->action_Connect, &QAction::triggered, this, &MainWindow::doConnect);
+    QObject::connect(ui->action_Settings, &QAction::triggered, this, &MainWindow::setSettings);
+    QObject::connect(ui->action_About, &QAction::triggered, this, &MainWindow::doAbout);
+    QObject::connect(ui->btnOutputClear, &QPushButton::clicked, this, &MainWindow::clearOutput);
+    QObject::connect(ui->btnInputClear, &QPushButton::clicked, this, &MainWindow::clearInput);
+    QObject::connect(ui->btnMacros, &QPushButton::clicked, this, &MainWindow::doMacros);
+    QObject::connect(ui->btnSendFile, &QPushButton::clicked, this, &MainWindow::sendFile);
+    QObject::connect(ui->checkDTR, &QCheckBox::checkStateChanged, this, &MainWindow::setDTR);
+    QObject::connect(ui->checkRTS, &QCheckBox::checkStateChanged, this, &MainWindow::setRTS);
 
-    //connect(m_serialPort, SIGNAL(readyRead()), this, SLOT(slot_serialDataReady()));
-    connect(m_serialPort, SIGNAL(errorOccurred(QSerialPort::SerialPortError)), this, SLOT(slot_serialPortError(QSerialPort::SerialPortError)));
-    connect(ui->editInput, SIGNAL(keyPressed(QString)), this, SLOT(slot_keyPressed(QString)));
-    connect(this, SIGNAL(signal_dataReady(QByteArray&)), this, SLOT(slot_updateUI(QByteArray&)));
+    m_serialPort = new WSerialPort();
+    QObject::connect(m_serialPort, &QIODevice::readyRead, this, &MainWindow::serialDataReady);
+    QObject::connect(m_serialPort, &QSerialPort::errorOccurred, this, &MainWindow::serialPortError);
+    QObject::connect(ui->editInput, &WTextEdit::keyPressed, this, &MainWindow::keyPressed);
+    QObject::connect(this, &MainWindow::dataReady, this, &MainWindow::updateUI);
 
     m_pinoutsReadTimer = new QTimer(this);
     m_pinoutsReadTimer->setInterval(500);
 
-    connect(m_pinoutsReadTimer, SIGNAL(timeout()), this, SLOT(slot_pinoutReadTimerTimeout()));
+    QObject::connect(m_pinoutsReadTimer, &QTimer::timeout, this, &MainWindow::pinoutReadTimerTimeout);
 
     setConnected(false);
 
@@ -83,12 +92,12 @@ void MainWindow::closeEvent(QCloseEvent* event) {
     QSettings settings;
     settings.setValue(STORE_GEOMETRY, saveGeometry());
 
-    emit closed();
+    emit windowClosed();
     event->accept();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MainWindow::on_action_Connect_triggered() {
+void MainWindow::doConnect() {
     if (!m_bConnected) {
         if (m_serialPort->connect()) {
             ui->editOutputAscii->clear();
@@ -110,7 +119,7 @@ void MainWindow::on_action_Connect_triggered() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MainWindow::on_action_Settings_triggered() {
+void MainWindow::setSettings() {
     m_serialPort->disconnect();
     setConnected(false);
 
@@ -123,38 +132,44 @@ void MainWindow::on_action_Settings_triggered() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MainWindow::on_action_About_triggered() {
+void MainWindow::doAbout() {
     HelpDialog dialog(this);
     dialog.exec();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MainWindow::on_btnOutputClear_clicked() {
+void MainWindow::clearOutput() {
     ui->editOutputAscii->clear();
     ui->editOutputHex->clear();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MainWindow::on_btnInputClear_clicked() {
+void MainWindow::clearInput() {
     ui->editInput->clear();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MainWindow::on_btnMacros_clicked() {
+void MainWindow::doMacros() {
     MacrosDialog *dialog = new MacrosDialog(this);
     dialog->setModal(false);
 
-    connect(dialog, SIGNAL(signal_writeData(QByteArray&)), this, SLOT(slot_writeData(QByteArray&)));
-    connect(this, SIGNAL(signal_dataReady(QByteArray&)), dialog, SLOT(slot_dataReady(QByteArray&)));
-    connect(this, SIGNAL(closed()), dialog, SLOT(close()));
-    connect(this, SIGNAL(signal_connectStatusChanged(bool)), dialog, SLOT(slot_connectStatusChanged(bool)));
+    QObject::connect(dialog, &MacrosDialog::writeData, this, &MainWindow::hasDataToWrite);
+    QObject::connect(this, &MainWindow::dataReady, dialog, &MacrosDialog::hasDataReady);
+    QObject::connect(this, &MainWindow::windowClosed, dialog, &MacrosDialog::close);
+    QObject::connect(this, &MainWindow::connectStatusChanged, dialog, &MacrosDialog::connectStatusHasChanged);
 
     dialog->setConnectStatus(m_bConnected);
     dialog->show();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MainWindow::on_btnSendFile_clicked() {
+void MainWindow::serialDataReady() {
+    QByteArray ba = m_serialPort->readAll();
+    emit dataReady(ba);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void MainWindow::sendFile() {
     QFile file;
     char ch[1];
     QByteArray tmp(4,0);
@@ -177,7 +192,7 @@ void MainWindow::on_btnSendFile_clicked() {
     }
 
     progress = new QProgressDialog(this);
-    connect(progress, SIGNAL(canceled()), this, SLOT(slot_progressCanceled()));
+    QObject::connect(progress, &QProgressDialog::canceled, this, &MainWindow::progressCanceled);
 
     QByteArray data = file.readAll();
 
@@ -217,48 +232,42 @@ void MainWindow::on_btnSendFile_clicked() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MainWindow::on_checkDTR_stateChanged(int state) {
+void MainWindow::setDTR(int state) {
     if (m_bConnected) {
         m_serialPort->setDataTerminalReady(state == Qt::Checked);
     }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MainWindow::on_checkRTS_stateChanged(int state) {
+void MainWindow::setRTS(int state) {
     if (m_bConnected) {
         m_serialPort->setRequestToSend(state == Qt::Checked);
     }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MainWindow::slot_writeData(QByteArray &data) {
+void MainWindow::hasDataToWrite(QByteArray &data) {
     m_serialPort->write(data);
     setAsciiData(data, COLOR_BLUE);
     setHexData(data, COLOR_BLUE);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MainWindow::slot_serialDataReady() {
-    QByteArray data = m_serialPort->readAll();
-    emit signal_dataReady(data);
-}
-
-///////////////////////////////////////////////////////////////////////////////
-void MainWindow::slot_updateUI(QByteArray &data) {
+void MainWindow::updateUI(QByteArray &data) {
     setAsciiData(data, COLOR_RED);
     setHexData(data, COLOR_RED);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MainWindow::slot_keyPressed(QString text) {
+void MainWindow::keyPressed(QString text) {
     if (m_bConnected) {
         QByteArray ba = text.toLocal8Bit();
-        slot_writeData(ba);
+        hasDataToWrite(ba);
     }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MainWindow::slot_pinoutReadTimerTimeout() {
+void MainWindow::pinoutReadTimerTimeout() {
     if (m_bConnected) {
         m_bStartup = true;
 
@@ -274,12 +283,12 @@ void MainWindow::slot_pinoutReadTimerTimeout() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MainWindow::slot_progressCanceled() {
+void MainWindow::progressCanceled() {
     m_bCanceled = true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MainWindow::slot_serialPortError(QSerialPort::SerialPortError error) {
+void MainWindow::serialPortError(QSerialPort::SerialPortError error) {
     if (m_bConnected && m_bStartup && error == QSerialPort::ResourceError) {
         m_pinoutsReadTimer->stop();
         m_serialPort->disconnect();
@@ -339,7 +348,7 @@ void MainWindow::setConnected(bool connected) {
         setWindowTitle(title);
     }
 
-    emit signal_connectStatusChanged(m_bConnected);
+    emit connectStatusChanged(m_bConnected);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

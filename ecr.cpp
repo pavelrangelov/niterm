@@ -2,9 +2,6 @@
 
 #include "macrosdialog.h"
 #include "ui_macrosdialog.h"
-#include "settings.h"
-#include "wserialport.h"
-#include "mainwindow.h"
 
 #define ERR_NO              0
 #define ERR_COMM            1
@@ -89,14 +86,14 @@ void MacrosDialog::startEcrCom(int row) {
 
     QByteArray temp = makeEcrProto(command, data);
 
-    emit signal_StartTimer(ECR_SYN_TOUT);
+    emit startThreadTimer(ECR_SYN_TOUT);
     m_EcrRun = true;
     m_EcrIdx = 0;
     m_EcrResult = ERR_COMM;
     m_Data.clear();
 
     if (!temp.isEmpty()) {
-        emit signal_writeData(temp);
+        emit writeData(temp);
     }
 
     for (int row=0; row<ui->table->rowCount(); row++) {

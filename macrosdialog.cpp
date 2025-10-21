@@ -13,7 +13,6 @@
 #include "macrosdialog.h"
 #include "ui_macrosdialog.h"
 #include "settings.h"
-#include "wserialport.h"
 #include "mainwindow.h"
 
 #define MACRO_PROTO_NONE    "None"
@@ -62,15 +61,23 @@ MacrosDialog::MacrosDialog(QWidget *parent) : QDialog(parent), ui(new Ui::Macros
     m_Cancel = false;
     m_Connected = false;
 
-    ui->spinDelay->setValue(0);
-    on_comboProto_currentIndexChanged(0);
+    QObject::connect(ui->btnSave, &QToolButton::clicked, this, &MacrosDialog::save);
+    QObject::connect(ui->btnOpen, &QToolButton::clicked, this, &MacrosDialog::open);
+    QObject::connect(ui->btnInsertAbove, &QToolButton::clicked, this, &MacrosDialog::insertAbove);
+    QObject::connect(ui->btnInsertBellow, &QToolButton::clicked, this, &MacrosDialog::insertBellow);
+    QObject::connect(ui->btnRemove, &QToolButton::clicked, this, &MacrosDialog::remove);
+    QObject::connect(ui->comboProto, &QComboBox::currentIndexChanged, this, &MacrosDialog::setProtocolMode);
+    QObject::connect(ui->btnSendAll, &QToolButton::clicked, this, &MacrosDialog::sendAll);
 
-    connect(this, SIGNAL(signal_Cancel()), this, SLOT(slot_Cancel()));
+    ui->spinDelay->setValue(0);
+    setProtocolMode(0);
+
+    QObject::connect(this, &MacrosDialog::cancel, this, &MacrosDialog::cancelSending);
 
     m_SynTimer = new TimerThread;
-    connect(m_SynTimer, SIGNAL(signal_Timeout()), this, SLOT(slot_synTout()));
-    connect(this, SIGNAL(signal_StartTimer(quint32)), m_SynTimer, SLOT(slot_Start(quint32)));
-    connect(this, SIGNAL(signal_StopTimer()), m_SynTimer, SLOT(slot_Stop()));
+    QObject::connect(m_SynTimer, &TimerThread::timeout, this, &MacrosDialog::synTout);
+    QObject::connect(this, &MacrosDialog::startThreadTimer, m_SynTimer, &TimerThread::startTimer);
+    QObject::connect(this, &MacrosDialog::stopThreadTimer, m_SynTimer, &TimerThread::stopTimer);
     m_SynTimer->start();
 }
 
@@ -96,7 +103,7 @@ void MacrosDialog::resizeEvent(QResizeEvent *event) {
 void MacrosDialog::closeEvent(QCloseEvent* event) {
     QSettings settings;
 
-    emit signal_Cancel();
+    emit cancel();
 
     g_Settings.comProtocol = ui->comboProto->currentText();
     g_Settings.repeatAll = ui->checkRepeat->isChecked();
@@ -110,7 +117,7 @@ void MacrosDialog::closeEvent(QCloseEvent* event) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MacrosDialog::on_comboProto_currentIndexChanged(int index) {
+void MacrosDialog::setProtocolMode(int index) {
     Q_UNUSED(index);
 
     if (ui->comboProto->currentText() == MACRO_PROTO_CREG || ui->comboProto->currentText() == MACRO_PROTO_RESP) {
@@ -123,7 +130,7 @@ void MacrosDialog::on_comboProto_currentIndexChanged(int index) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MacrosDialog::on_btnInsertAbove_clicked() {
+void MacrosDialog::insertAbove() {
     int row = ui->table->currentRow();
 
     if (row == -1 || row == 0) {
@@ -134,7 +141,7 @@ void MacrosDialog::on_btnInsertAbove_clicked() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MacrosDialog::on_btnInsertBellow_clicked() {
+void MacrosDialog::insertBellow() {
     int row = ui->table->currentRow();
 
     if (row == -1) {
@@ -147,7 +154,7 @@ void MacrosDialog::on_btnInsertBellow_clicked() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MacrosDialog::on_btnSave_clicked() {
+void MacrosDialog::save() {
     QString fileName = chooseSaveFile();
 
     if (!fileName.isEmpty()) {
@@ -156,7 +163,7 @@ void MacrosDialog::on_btnSave_clicked() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MacrosDialog::on_btnOpen_clicked() {
+void MacrosDialog::open() {
     QString fileName = chooseOpenFile();
 
     if (!fileName.isEmpty()) {
@@ -165,7 +172,7 @@ void MacrosDialog::on_btnOpen_clicked() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MacrosDialog::on_btnRemove_clicked() {
+void MacrosDialog::remove() {
     int row = getSelectedRow();
 
     if (row == -1) {
@@ -177,7 +184,7 @@ void MacrosDialog::on_btnRemove_clicked() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MacrosDialog::slot_buttonClicked() {
+void MacrosDialog::sendCurrentRow() {
     QPushButton *button = qobject_cast<QPushButton*>(sender());
 
     if (!m_Connected) {
@@ -199,7 +206,7 @@ void MacrosDialog::slot_buttonClicked() {
 
     if (ui->comboProto->currentText() == MACRO_PROTO_NONE || ui->comboProto->currentText() == MACRO_PROTO_RESP) {
         QByteArray data = convertData(ui->table->item(m_SenderRow, COL_MACRO_DATA)->text().toLocal8Bit());
-        emit signal_writeData(data);
+        emit writeData(data);
     } else
     if (ui->comboProto->currentText() == MACRO_PROTO_CREG) {
         startEcrCom(m_SenderRow);
@@ -207,7 +214,7 @@ void MacrosDialog::slot_buttonClicked() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MacrosDialog::on_btnSendAll_clicked() {
+void MacrosDialog::sendAll() {
     if (!m_Connected) {
         QMessageBox::information(this, APP_NAME, tr("Not connected."));
         return;
@@ -221,7 +228,7 @@ void MacrosDialog::on_btnSendAll_clicked() {
         for (int row=0; row<ui->table->rowCount(); row++) {
             if (ui->comboProto->currentText() == MACRO_PROTO_NONE || ui->comboProto->currentText() == MACRO_PROTO_RESP) {
                 QByteArray data = convertData(ui->table->item(row, COL_MACRO_DATA)->text().toLocal8Bit());
-                emit signal_writeData(data);
+                emit writeData(data);
             } else
             if (ui->comboProto->currentText() == MACRO_PROTO_CREG)
             {
@@ -241,7 +248,7 @@ void MacrosDialog::on_btnSendAll_clicked() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MacrosDialog::slot_synTout() {
+void MacrosDialog::synTout() {
     stopEcrCom();
 }
 
@@ -284,7 +291,7 @@ int MacrosDialog::insertTableRow(int row) {
     button->setIcon(QIcon(":/images/play.png"));
     button->setIconSize(QSize(32,32));
     button->setProperty("id", ++m_RowId);
-    connect(button, SIGNAL(clicked()), this, SLOT(slot_buttonClicked()));
+    QObject::connect(button, &QPushButton::clicked, this, &MacrosDialog::sendCurrentRow);
 
     ui->table->setItem(row, COL_MACRO_COMMAND,  new QTableWidgetItem(""));
     ui->table->setItem(row, COL_MACRO_DATA,     new QTableWidgetItem(""));
@@ -506,7 +513,7 @@ QByteArray MacrosDialog::convertFunction(QByteArray data) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MacrosDialog::slot_dataReady(QByteArray &data) {
+void MacrosDialog::hasDataReady(QByteArray &data) {
     for (int i=0; i<data.length(); i++) {
         if (data.at(i) != ASCII_SYN) {
             m_Data += data.at(i);
@@ -522,14 +529,14 @@ void MacrosDialog::slot_dataReady(QByteArray &data) {
                 QByteArray onsend = convertData(ui->table->item(row, COL_MACRO_RESPONSE)->text().toLocal8Bit());
 
                 if (m_Data.indexOf(onrecv) != -1) {
-                    emit signal_writeData(onsend);
+                    emit writeData(onsend);
                     m_Data.clear();
                 }
             }
         }
     } else
     if (ui->comboProto->currentText() == MACRO_PROTO_CREG) {
-        emit signal_StopTimer();
+        emit stopThreadTimer();
 
         if (parseEcrFrame(m_Data)) {
             m_EcrResult = parseEcrAnswer(m_Data);
@@ -543,17 +550,17 @@ void MacrosDialog::slot_dataReady(QByteArray &data) {
             return;
         }
 
-        emit signal_StartTimer(ECR_SYN_TOUT);
+        emit startThreadTimer(ECR_SYN_TOUT);
     }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MacrosDialog::slot_Cancel() {
+void MacrosDialog::cancelSending() {
     m_Cancel = true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MacrosDialog::slot_connectStatusChanged(bool connected) {
+void MacrosDialog::connectStatusHasChanged(bool connected) {
     m_Connected = connected;
 }
 

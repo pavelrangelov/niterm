@@ -60,6 +60,9 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent), ui(new Ui::Se
     ui->comboTimestamp->addItem("Disable");
     ui->comboTimestamp->addItem("Enable");
     ui->comboTimestamp->setCurrentText(g_Settings.timeStamp);
+
+    QObject::connect(ui->btnOk, &QPushButton::clicked, this, &SettingsDialog::setSettings);
+    QObject::connect(ui->btnCancel, &QPushButton::clicked, this, [this](){reject();});
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -68,7 +71,7 @@ SettingsDialog::~SettingsDialog() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void SettingsDialog::on_btnOK_clicked() {
+void SettingsDialog::setSettings() {
     g_Settings.comPort          = parsePort(ui->comboComPort->currentText());   // 1
     g_Settings.baudRateIndex    = ui->comboBaudRate->currentIndex();            // 2
     g_Settings.dataBitsIndex    = ui->comboDataBits->currentIndex();            // 3
@@ -82,11 +85,6 @@ void SettingsDialog::on_btnOK_clicked() {
     g_Settings.timeStamp        = ui->comboTimestamp->currentText();            // 11
 
     accept();
-}
-
-///////////////////////////////////////////////////////////////////////////////
-void SettingsDialog::on_btnCancel_clicked() {
-    reject();
 }
 
 ///////////////////////////////////////////////////////////////////////////////

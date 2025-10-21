@@ -18,9 +18,6 @@ class HelpDialog : public QDialog {
 
     private:
         Ui::HelpDialog *ui;
-
-    private slots:
-        void on_btnOk_clicked();
 };
 
 #endif // HELPDIALOG_H

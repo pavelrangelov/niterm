@@ -20,11 +20,11 @@ class TimerThread : public QThread {
         quint32 m_Timer;
 
     signals:
-        void signal_Timeout();
+        void timeout();
 
-    private slots:
-        void slot_Start(quint32 milliseconds);
-        void slot_Stop();
+    public slots:
+        void startTimer(quint32 milliseconds);
+        void stopTimer();
 
 };
 

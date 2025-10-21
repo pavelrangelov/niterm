@@ -30,8 +30,7 @@ class SettingsDialog : public QDialog {
         QStringList getPortNames();
 
     private slots:
-        void on_btnOK_clicked();
-        void on_btnCancel_clicked();
+        void setSettings();
 };
 
 #endif // SETTINGSDIALOG_H

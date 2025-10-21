@@ -23,8 +23,8 @@ void TimerThread::run() {
         }
 
         if (!m_Terminate && m_Started) {
-            slot_Stop();
-            emit signal_Timeout();
+            stopTimer();
+            emit timeout();
         }
 
         qApp->processEvents();
@@ -37,13 +37,13 @@ void TimerThread::terminateThread() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void TimerThread::slot_Start(quint32 milliseconds) {
+void TimerThread::startTimer(quint32 milliseconds) {
     m_Timer = milliseconds;
     m_Started = true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void TimerThread::slot_Stop() {
+void TimerThread::stopTimer() {
     m_Started = false;
     m_Timer = 0;
 }

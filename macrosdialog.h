@@ -61,7 +61,6 @@ class MacrosDialog : public QDialog {
 
     private:
         Ui::MacrosDialog *ui;
-        WSerialPort *wsp;
         QByteArray m_Data;
         quint8 m_SeqNum;
         quint16 m_RowId;
@@ -72,6 +71,7 @@ class MacrosDialog : public QDialog {
         int m_EcrResult;
         bool m_Cancel;
         bool m_Connected;
+        WSerialPort *wsp;
         TimerThread *m_SynTimer;
 
         int insertTableRow(int row);
@@ -105,26 +105,25 @@ class MacrosDialog : public QDialog {
         virtual void resizeEvent(QResizeEvent *event);
         virtual void closeEvent(QCloseEvent* event);
 
-    private slots:
-        void on_btnSave_clicked();
-        void on_btnOpen_clicked();
-        void on_btnInsertAbove_clicked();
-        void on_btnInsertBellow_clicked();
-        void on_btnRemove_clicked();
-        void on_btnSendAll_clicked();
-        void on_comboProto_currentIndexChanged(int index);
-
-        void slot_buttonClicked();
-        void slot_dataReady(QByteArray &data);
-        void slot_Cancel();
-        void slot_connectStatusChanged(bool connected);
-        void slot_synTout();
+    public slots:
+        void save();
+        void open();
+        void insertAbove();
+        void insertBellow();
+        void remove();
+        void sendAll();
+        void setProtocolMode(int index);
+        void sendCurrentRow();
+        void hasDataReady(QByteArray &data);
+        void cancelSending();
+        void connectStatusHasChanged(bool connected);
+        void synTout();
 
     signals:
-        void signal_writeData(QByteArray &data);
-        void signal_Cancel();
-        void signal_StartTimer(quint32 milliseconds);
-        void signal_StopTimer();
+        void writeData(QByteArray &data);
+        void cancel();
+        void startThreadTimer(quint32 milliseconds);
+        void stopThreadTimer();
 };
 
 #endif // MACROSDIALOG_H
