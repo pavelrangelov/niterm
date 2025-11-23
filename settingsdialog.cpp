@@ -12,7 +12,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent), ui(new Ui::Se
     ui->setupUi(this);
 
     QString comPort = g_Settings.comPort;
-    QString comDesc = getPortDescripion(g_Settings.comPort);
+    QString comDesc = getPortDescription(g_Settings.comPort);
 
     if (!comDesc.isEmpty()) {
         comPort += QString(" (%1)").arg(comDesc);
@@ -88,7 +88,7 @@ void SettingsDialog::setSettings() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-QString SettingsDialog::getPortDescripion(const QString &text) {
+QString SettingsDialog::getPortDescription(const QString &text) {
     QString desc = "";
 
     foreach (QSerialPortInfo spi, QSerialPortInfo::availablePorts()) {

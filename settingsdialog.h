@@ -25,7 +25,7 @@ class SettingsDialog : public QDialog {
     private:
         Ui::SettingsDialog *ui;
 
-        QString getPortDescripion(const QString &text);
+        QString getPortDescription(const QString &text);
         QString parsePort(const QString &text);
         QStringList getPortNames();
 
