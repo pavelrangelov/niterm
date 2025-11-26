@@ -2,6 +2,7 @@
 #define SETTINGS_H
 
 #include <QString>
+#include <QSerialPort>
 
 #define APP_NAME "NiTerm"
 #define ORG_NAME "Nifelheim"
@@ -28,11 +29,11 @@
 ///////////////////////////////////////////////////////////////////////////////
 typedef struct {
     QString comPort;
-    int baudRateIndex;
-    int dataBitsIndex;
-    int stopBitsIndex;
-    int parityIndex;
-    int flowControlIndex;
+    int baudRate;
+    int dataBits;
+    int stopBits;
+    int parity;
+    int flowControl;
     int charDelay;
     QString textEncoding;
     QString fontName;

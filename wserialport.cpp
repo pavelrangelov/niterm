@@ -11,46 +11,6 @@
 #include "settings.h"
 #include "wserialport.h"
 
-const qint32 WSerialPort::BaudRatesArray[BAUD_RATES_COUNT] = {
-    QSerialPort::Baud1200,
-    QSerialPort::Baud2400,
-    QSerialPort::Baud4800,
-    QSerialPort::Baud9600,
-    QSerialPort::Baud19200,
-    QSerialPort::Baud38400,
-    QSerialPort::Baud57600,
-    QSerialPort::Baud115200
-};
-
-///////////////////////////////////////////////////////////////////////////////
-const QSerialPort::DataBits WSerialPort::DataBitsArray[4] = {
-    QSerialPort::Data5,
-    QSerialPort::Data6,
-    QSerialPort::Data7,
-    QSerialPort::Data8
-};
-
-///////////////////////////////////////////////////////////////////////////////
-const QSerialPort::StopBits WSerialPort::StopBitsArray[3] = {
-    QSerialPort::OneStop,
-    QSerialPort::OneAndHalfStop,
-    QSerialPort::TwoStop
-};
-
-///////////////////////////////////////////////////////////////////////////////
-const QSerialPort::Parity WSerialPort::ParityArray[3] = {
-    QSerialPort::NoParity,
-    QSerialPort::EvenParity,
-    QSerialPort::OddParity
-};
-
-///////////////////////////////////////////////////////////////////////////////
-const QSerialPort::FlowControl WSerialPort::FlowControlArray[3] = {
-    QSerialPort::NoFlowControl,
-    QSerialPort::HardwareControl,
-    QSerialPort::SoftwareControl
-};
-
 ///////////////////////////////////////////////////////////////////////////////
 const QString WSerialPort::ASCII_table[ASCII_TABLE_SIZE] = {
     "NUL",  // 00
@@ -99,7 +59,6 @@ WSerialPort::~WSerialPort() {
 bool WSerialPort::connect() {
     #ifdef Q_OS_WIN
     QString cname(g_Settings.comPort);
-
     int index = cname.indexOf("(COM");
 
     if (index != -1) {
@@ -115,12 +74,12 @@ bool WSerialPort::connect() {
     fname += g_Settings.comPort;
     #endif
 
-    setPortName     (fname);
-    setBaudRate     (BaudRatesArray     [g_Settings.baudRateIndex]);
-    setDataBits     (DataBitsArray      [g_Settings.dataBitsIndex]);
-    setParity       (ParityArray        [g_Settings.parityIndex]);
-    setStopBits     (StopBitsArray      [g_Settings.stopBitsIndex]);
-    setFlowControl  (FlowControlArray   [g_Settings.flowControlIndex]);
+    setPortName(fname);
+    setBaudRate((QSerialPort::BaudRate)g_Settings.baudRate);
+    setDataBits((QSerialPort::DataBits)g_Settings.dataBits);
+    setStopBits((QSerialPort::StopBits)g_Settings.stopBits);
+    setParity((QSerialPort::Parity)g_Settings.parity);
+    setFlowControl((QSerialPort::FlowControl)g_Settings.flowControl);
 
     close();
 

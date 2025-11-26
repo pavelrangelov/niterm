@@ -304,7 +304,7 @@ void MainWindow::setConnected(bool connected) {
         m_bConnected = true;
         ui->action_Connect->setIcon(QIcon(":/images/48x48/disconnect.png"));
 
-        if (g_Settings.flowControlIndex != 1) {
+        if (g_Settings.flowControl != (int)QSerialPort::HardwareControl) {
             enablePinsCheckBoxes(true);
             m_serialPort->setRequestToSend(false);
             m_serialPort->setDataTerminalReady(false);
@@ -318,17 +318,17 @@ void MainWindow::setConnected(bool connected) {
         title += ": ";
         title += g_Settings.comPort;
         title += "; ";
-        title += QString("%1").arg(m_serialPort->BaudRatesArray[g_Settings.baudRateIndex]);
+        title += QString::number(m_serialPort->baudRate());
         title += "; ";
-        title += QString("%1").arg(m_serialPort->DataBitsArray[g_Settings.dataBitsIndex]);
+        title += QString::number(m_serialPort->dataBits());
         title += "; ";
-        title += QString("%1").arg(m_serialPort->StopBitsArray[g_Settings.stopBitsIndex]);
+        title += QString::number(m_serialPort->stopBits());
         title += "; ";
 
-        switch (g_Settings.flowControlIndex) {
-            case 0: title += "None"; break;
-            case 1: title += "Hardware"; break;
-            case 2: title += "Software"; break;
+        switch (m_serialPort->flowControl()) {
+            case QSerialPort::NoFlowControl: title += "None"; break;
+            case QSerialPort::HardwareControl: title += "Hardware"; break;
+            case QSerialPort::SoftwareControl: title += "Software"; break;
         }
 
         setWindowTitle(title);
@@ -358,27 +358,27 @@ void MainWindow::loadSettings() {
     restoreGeometry(settings.value(STORE_GEOMETRY).toByteArray());
 
     #ifdef Q_OS_WIN
-    g_Settings.comPort = settings.value(STORE_COMPORT, "COM1").toString();                          // 1
+    g_Settings.comPort = settings.value(STORE_COMPORT, "COM1").toString();
     #else
-    g_Settings.comPort = settings.value(STORE_COMPORT, "ttyS0").toString();                         // 1
+    g_Settings.comPort = settings.value(STORE_COMPORT, "ttyS0").toString();
     #endif
 
-    g_Settings.baudRateIndex    = settings.value(STORE_BAUDRATE,    3).toInt();                     // 2
-    g_Settings.dataBitsIndex    = settings.value(STORE_DATABITS,    3).toInt();                     // 3
-    g_Settings.stopBitsIndex    = settings.value(STORE_STOPBITS,    0).toInt();                     // 4
-    g_Settings.parityIndex      = settings.value(STORE_PARITY,      0).toInt();                     // 5
-    g_Settings.flowControlIndex = settings.value(STORE_FLOWCONTROL, 0).toInt();                     // 6
-    g_Settings.charDelay        = settings.value(STORE_CHARDELAY,   0).toInt();                     // 7
-    g_Settings.textEncoding     = settings.value(STORE_ENCODING,    "System").toString();           // 8
+    g_Settings.baudRate = settings.value(STORE_BAUDRATE, (int)QSerialPort::Baud115200).toInt();
+    g_Settings.dataBits = settings.value(STORE_DATABITS, (int)QSerialPort::Data8).toInt();
+    g_Settings.stopBits = settings.value(STORE_STOPBITS, (int)QSerialPort::OneStop).toInt();
+    g_Settings.parity = settings.value(STORE_PARITY, (int)QSerialPort::NoParity).toInt();
+    g_Settings.flowControl = settings.value(STORE_FLOWCONTROL, (int)QSerialPort::NoFlowControl).toInt();
+    g_Settings.charDelay = settings.value(STORE_CHARDELAY, 0).toInt();
+    g_Settings.textEncoding = settings.value(STORE_ENCODING,"System").toString();
     #ifdef Q_OS_WIN
-    g_Settings.fontName         = settings.value(STORE_FONTNAME,    "Courier New").toString();      // 9
+    g_Settings.fontName = settings.value(STORE_FONTNAME, "Courier New").toString();
     #else
-    g_Settings.fontName         = settings.value(STORE_FONTNAME,    "Monospace").toString();        // 9
+    g_Settings.fontName = settings.value(STORE_FONTNAME, "Monospace").toString();
     #endif
-    g_Settings.fontSize         = settings.value(STORE_FONTSIZE,    12).toInt();                    // 10
-    g_Settings.comProtocol      = settings.value(STORE_MACROSPROTO, "None").toString();             // 11
-    g_Settings.repeatAll        = settings.value(STORE_MACROSREPT,  false).toBool();                // 12
-    g_Settings.timeStamp        = settings.value(STORE_TIMESTAMP,   "Disable").toString();          // 13
+    g_Settings.fontSize = settings.value(STORE_FONTSIZE, 12).toInt();
+    g_Settings.comProtocol = settings.value(STORE_MACROSPROTO, "None").toString();
+    g_Settings.repeatAll = settings.value(STORE_MACROSREPT, false).toBool();
+    g_Settings.timeStamp = settings.value(STORE_TIMESTAMP, "Disable").toString();
 
     if (g_Settings.timeStamp != "Disable" && g_Settings.timeStamp != "Enable") {
         g_Settings.timeStamp = "Disable";
@@ -399,19 +399,19 @@ void MainWindow::loadSettings() {
 void MainWindow::saveSettings() {
     QSettings settings;
 
-    settings.setValue(STORE_COMPORT,        g_Settings.comPort);            // 1
-    settings.setValue(STORE_BAUDRATE,       g_Settings.baudRateIndex);      // 2
-    settings.setValue(STORE_DATABITS,       g_Settings.dataBitsIndex);      // 3
-    settings.setValue(STORE_STOPBITS,       g_Settings.stopBitsIndex);      // 4
-    settings.setValue(STORE_PARITY,         g_Settings.parityIndex);        // 5
-    settings.setValue(STORE_FLOWCONTROL,    g_Settings.flowControlIndex);   // 6
-    settings.setValue(STORE_CHARDELAY,      g_Settings.charDelay);          // 7
-    settings.setValue(STORE_ENCODING,       g_Settings.textEncoding);       // 8
-    settings.setValue(STORE_FONTNAME,       g_Settings.fontName);           // 9
-    settings.setValue(STORE_FONTSIZE,       g_Settings.fontSize);           // 10
-    settings.setValue(STORE_MACROSPROTO,    g_Settings.comProtocol);        // 11
-    settings.setValue(STORE_MACROSREPT,     g_Settings.repeatAll);          // 12
-    settings.setValue(STORE_TIMESTAMP,      g_Settings.timeStamp);          // 13
+    settings.setValue(STORE_COMPORT,        g_Settings.comPort);
+    settings.setValue(STORE_BAUDRATE,       g_Settings.baudRate);
+    settings.setValue(STORE_DATABITS,       g_Settings.dataBits);
+    settings.setValue(STORE_STOPBITS,       g_Settings.stopBits);
+    settings.setValue(STORE_PARITY,         g_Settings.parity);
+    settings.setValue(STORE_FLOWCONTROL,    g_Settings.flowControl);
+    settings.setValue(STORE_CHARDELAY,      g_Settings.charDelay);
+    settings.setValue(STORE_ENCODING,       g_Settings.textEncoding);
+    settings.setValue(STORE_FONTNAME,       g_Settings.fontName);
+    settings.setValue(STORE_FONTSIZE,       g_Settings.fontSize);
+    settings.setValue(STORE_MACROSPROTO,    g_Settings.comProtocol);
+    settings.setValue(STORE_MACROSREPT,     g_Settings.repeatAll);
+    settings.setValue(STORE_TIMESTAMP,      g_Settings.timeStamp);
 
     QTextCodec::setCodecForLocale(QTextCodec::codecForName(g_Settings.textEncoding.toLatin1()));
 

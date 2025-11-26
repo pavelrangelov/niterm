@@ -3,7 +3,6 @@
 
 #include "settingsdialog.h"
 #include "ui_settingsdialog.h"
-#include "wserialport.h"
 #include "settings.h"
 #include "mainwindow.h"
 
@@ -21,31 +20,35 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent), ui(new Ui::Se
     ui->comboComPort->addItems(getPortNames());
     ui->comboComPort->setCurrentText(comPort);
 
-    for (int i=0; i<BAUD_RATES_COUNT; i++) {
-        ui->comboBaudRate->addItems(QStringList() << QString("%1").arg(WSerialPort::BaudRatesArray[i]));
-    }
-    ui->comboBaudRate->setCurrentIndex(g_Settings.baudRateIndex);
+    ui->comboBaudRate->addItem("1200", QSerialPort::Baud1200);
+    ui->comboBaudRate->addItem("2400", QSerialPort::Baud2400);
+    ui->comboBaudRate->addItem("4800", QSerialPort::Baud4800);
+    ui->comboBaudRate->addItem("9600", QSerialPort::Baud9600);
+    ui->comboBaudRate->addItem("38400", QSerialPort::Baud38400);
+    ui->comboBaudRate->addItem("57600", QSerialPort::Baud57600);
+    ui->comboBaudRate->addItem("115200", QSerialPort::Baud115200);
+    ui->comboBaudRate->setCurrentIndex(ui->comboBaudRate->findData(g_Settings.baudRate));
 
-    ui->comboDataBits->addItem("5");
-    ui->comboDataBits->addItem("6");
-    ui->comboDataBits->addItem("7");
-    ui->comboDataBits->addItem("8");
-    ui->comboDataBits->setCurrentIndex(g_Settings.dataBitsIndex);
+    ui->comboDataBits->addItem("5", QSerialPort::Data5);
+    ui->comboDataBits->addItem("6", QSerialPort::Data6);
+    ui->comboDataBits->addItem("7", QSerialPort::Data7);
+    ui->comboDataBits->addItem("8", QSerialPort::Data8);
+    ui->comboDataBits->setCurrentIndex(ui->comboDataBits->findData(g_Settings.dataBits));
 
-    ui->comboStopBits->addItem("1");
-    ui->comboStopBits->addItem("1.5");
-    ui->comboStopBits->addItem("2");
-    ui->comboStopBits->setCurrentIndex(g_Settings.stopBitsIndex);
+    ui->comboStopBits->addItem("1", QSerialPort::OneStop);
+    ui->comboStopBits->addItem("1.5", QSerialPort::OneAndHalfStop);
+    ui->comboStopBits->addItem("2", QSerialPort::TwoStop);
+    ui->comboStopBits->setCurrentIndex(ui->comboStopBits->findData(g_Settings.stopBits));
 
-    ui->comboParity->addItem("None");
-    ui->comboParity->addItem("Even");
-    ui->comboParity->addItem("Odd");
-    ui->comboParity->setCurrentIndex(g_Settings.parityIndex);
+    ui->comboParity->addItem("None", QSerialPort::NoParity);
+    ui->comboParity->addItem("Even", QSerialPort::EvenParity);
+    ui->comboParity->addItem("Odd", QSerialPort::OddParity);
+    ui->comboParity->setCurrentIndex(ui->comboParity->findData(g_Settings.parity));
 
-    ui->comboFlowControl->addItem("None");
-    ui->comboFlowControl->addItem("Hardware");
-    ui->comboFlowControl->addItem("Software");
-    ui->comboFlowControl->setCurrentIndex(g_Settings.flowControlIndex);
+    ui->comboFlowControl->addItem("None", QSerialPort::NoFlowControl);
+    ui->comboFlowControl->addItem("Hardware", QSerialPort::HardwareControl);
+    ui->comboFlowControl->addItem("Software", QSerialPort::SoftwareControl);
+    ui->comboFlowControl->setCurrentIndex(ui->comboFlowControl->findData(g_Settings.flowControl));
 
     ui->spinCharDelay->setValue(g_Settings.charDelay);
 
@@ -72,18 +75,17 @@ SettingsDialog::~SettingsDialog() {
 
 ///////////////////////////////////////////////////////////////////////////////
 void SettingsDialog::setSettings() {
-    g_Settings.comPort          = parsePort(ui->comboComPort->currentText());   // 1
-    g_Settings.baudRateIndex    = ui->comboBaudRate->currentIndex();            // 2
-    g_Settings.dataBitsIndex    = ui->comboDataBits->currentIndex();            // 3
-    g_Settings.stopBitsIndex    = ui->comboStopBits->currentIndex();            // 4
-    g_Settings.parityIndex      = ui->comboParity->currentIndex();              // 5
-    g_Settings.flowControlIndex = ui->comboFlowControl->currentIndex();         // 6
-    g_Settings.charDelay        = ui->spinCharDelay->value();                   // 7
-    g_Settings.textEncoding     = ui->comboEncoding->currentText();             // 8
-    g_Settings.fontName         = ui->fontComboBox->currentText();              // 9
-    g_Settings.fontSize         = ui->spinFontSize->value();                    // 10
-    g_Settings.timeStamp        = ui->comboTimestamp->currentText();            // 11
-
+    g_Settings.comPort = parsePort(ui->comboComPort->currentText());
+    g_Settings.baudRate = ui->comboBaudRate->currentData().toInt();
+    g_Settings.dataBits = ui->comboDataBits->currentData().toInt();
+    g_Settings.stopBits = ui->comboStopBits->currentData().toInt();
+    g_Settings.parity = ui->comboParity->currentData().toInt();
+    g_Settings.flowControl = ui->comboFlowControl->currentData().toInt();
+    g_Settings.charDelay = ui->spinCharDelay->value();
+    g_Settings.textEncoding = ui->comboEncoding->currentText();
+    g_Settings.fontName = ui->fontComboBox->currentText();
+    g_Settings.fontSize = ui->spinFontSize->value();
+    g_Settings.timeStamp = ui->comboTimestamp->currentText();
     accept();
 }
 
@@ -117,11 +119,11 @@ QString SettingsDialog::parsePort(const QString &text) {
 QStringList SettingsDialog::getPortNames() {
     QStringList list;
 
-    foreach (QSerialPortInfo spi, QSerialPortInfo::availablePorts()) {
-        if (spi.description().isEmpty()) {
-            list.append(QString("%1").arg(spi.portName()));
+    foreach (QSerialPortInfo info, QSerialPortInfo::availablePorts()) {
+        if (info.description().isEmpty()) {
+            list.append(QString("%1").arg(info.portName()));
         } else {
-            list.append(QString("%1 (%2)").arg(spi.portName()).arg(spi.description()));
+            list.append(QString("%1 (%2)").arg(info.portName(), info.description()));
         }
     }
 
