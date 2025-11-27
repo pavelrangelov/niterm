@@ -9,7 +9,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 class WSerialPort : public QSerialPort {
     public:
-        WSerialPort();
+        WSerialPort(QObject *parent = nullptr);
         ~WSerialPort();
 
         static const qint32 BaudRatesArray[BAUD_RATES_COUNT];

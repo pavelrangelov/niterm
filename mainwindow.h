@@ -8,8 +8,10 @@
 #include <QTimer>
 #include <QPlainTextEdit>
 #include <QProgressDialog>
+#include <QThread>
 
 #include "wserialport.h"
+#include "worker.h"
 
 #define COLOR_RED       QColor(200,0,0)
 #define COLOR_GREEN     QColor(0,120,0)
@@ -30,7 +32,7 @@ class MainWindow : public QMainWindow {
         ~MainWindow();
 
         QStringList getEncodingList(){ return m_encodingList; }
-        WSerialPort *getSerialDevice(){ return m_serialPort; }
+        WSerialPort *getSerialDevice(){ return m_worker->getSerialPort(); }
 
     private:
         Ui::MainWindow *ui;
@@ -42,7 +44,7 @@ class MainWindow : public QMainWindow {
         bool m_timeStamp;
         QProgressDialog *progress;
         QTimer *m_pinoutsReadTimer;
-        WSerialPort *m_serialPort;
+        Worker *m_worker;
 
         void setConnected(bool connected);
         void setAsciiData(QByteArray &data, QColor color);
@@ -74,16 +76,15 @@ class MainWindow : public QMainWindow {
         void setRTS(int state);
         void keyPressed(QString text);
         void pinoutReadTimerTimeout();
-        void hasDataToWrite(QByteArray &data);
+        void outputTransmitedData(QByteArray data);
+        void outputReceivedData(QByteArray data);
+        void serialPortError(QSerialPort::SerialPortError error);
         void progressCanceled();
-        void serialPortError(QSerialPort::SerialPortError);
-        void updateUI(QByteArray &data);
-        void serialDataReady();
 
     signals:
         void windowClosed();
-        void dataReady(QByteArray &data);
         void connectStatusChanged(bool connected);
+        void writeData(QByteArray data);
 };
 
 #endif // MAINWINDOW_H

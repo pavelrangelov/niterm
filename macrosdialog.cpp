@@ -221,6 +221,9 @@ void MacrosDialog::sendAll() {
     }
 
     int t = ui->spinDelay->value();
+    if (t < 20) {
+        t = 20;
+    }
 
     m_Cancel = false;
 
@@ -230,19 +233,14 @@ void MacrosDialog::sendAll() {
                 QByteArray data = convertData(ui->table->item(row, COL_MACRO_DATA)->text().toLocal8Bit());
                 emit writeData(data);
             } else
-            if (ui->comboProto->currentText() == MACRO_PROTO_CREG)
-            {
+            if (ui->comboProto->currentText() == MACRO_PROTO_CREG) {
                 m_SenderRow = row;
                 startEcrCom(m_SenderRow);
             }
-
             if (m_Cancel) {
                 break;
             }
-
-            if (t > 0) {
-                delay(t);
-            }
+            delay(t);
         }
     } while (ui->checkRepeat->isChecked() && !m_Cancel);
 }
@@ -513,7 +511,7 @@ QByteArray MacrosDialog::convertFunction(QByteArray data) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MacrosDialog::hasDataReady(QByteArray &data) {
+void MacrosDialog::hasDataReady(QByteArray data) {
     for (int i=0; i<data.length(); i++) {
         if (data.at(i) != ASCII_SYN) {
             m_Data += data.at(i);
@@ -605,6 +603,10 @@ bool MacrosDialog::checkSyntax(QByteArray data) {
     for (int i=0; i<len-1; i++) {
         int curr = getIndexByCharType(data.at(i));
         int next = getIndexByCharType(data.at(i+1));
+
+        if (curr == -1 || next == -1) {
+            return false;
+        }
 
         if (syntaxArray[curr][next] == 0) {
             return false;

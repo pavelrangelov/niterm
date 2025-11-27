@@ -114,7 +114,7 @@ class MacrosDialog : public QDialog {
         void sendAll();
         void setProtocolMode(int index);
         void sendCurrentRow();
-        void hasDataReady(QByteArray &data);
+        void hasDataReady(QByteArray data);
         void cancelSending();
         void connectStatusHasChanged(bool connected);
         void synTout();

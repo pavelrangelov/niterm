@@ -13,7 +13,7 @@
 #include "macrosdialog.h"
 #include "helpdialog.h"
 
-const QString checkStyle =
+static const QString checkStyle =
 "QCheckBox{spacing: 5px;}"
 "QCheckBox::indicator{width: 13px; height: 13px;}"
 "QCheckBox::indicator:unchecked{image: url(:/images/check-off.png);}"
@@ -61,11 +61,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     QObject::connect(ui->checkDTR, &QCheckBox::checkStateChanged, this, &MainWindow::setDTR);
     QObject::connect(ui->checkRTS, &QCheckBox::checkStateChanged, this, &MainWindow::setRTS);
 
-    m_serialPort = new WSerialPort();
-    QObject::connect(m_serialPort, &QIODevice::readyRead, this, &MainWindow::serialDataReady);
-    QObject::connect(m_serialPort, &QSerialPort::errorOccurred, this, &MainWindow::serialPortError);
     QObject::connect(ui->editInput, &WTextEdit::keyPressed, this, &MainWindow::keyPressed);
-    QObject::connect(this, &MainWindow::dataReady, this, &MainWindow::updateUI);
 
     m_pinoutsReadTimer = new QTimer(this);
     m_pinoutsReadTimer->setInterval(500);
@@ -75,15 +71,23 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     setConnected(false);
 
     ui->editInput->setFocus();
+
+    m_worker = new Worker;
+    QObject::connect(this, &MainWindow::writeData, m_worker, &Worker::writeData);
+    QObject::connect(m_worker, &Worker::dataReady, this, &MainWindow::outputReceivedData);
+    QObject::connect(m_worker, &Worker::serialError, this, &MainWindow::serialPortError);
+    m_worker->start(QThread::HighPriority);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 MainWindow::~MainWindow() {
-    if (m_serialPort != NULL) {
-        m_serialPort->close();
-        delete m_serialPort;
-        m_serialPort = NULL;
+    m_worker->quit();
+    m_worker->wait();
+
+    if (m_worker) {
+        delete m_worker;
     }
+
     delete ui;
 }
 
@@ -99,20 +103,20 @@ void MainWindow::closeEvent(QCloseEvent* event) {
 ///////////////////////////////////////////////////////////////////////////////
 void MainWindow::doConnect() {
     if (!m_bConnected) {
-        if (m_serialPort->connect()) {
+        if (m_worker->connect()) {
             ui->editOutputAscii->clear();
             ui->editOutputHex->clear();
 
-            m_serialPort->flush();
-            m_serialPort->clearError();
+            m_worker->flush();
+            m_worker->clearError();
 
             setConnected(true);
             m_pinoutsReadTimer->start();
         } else {
-            QMessageBox::critical(this, APP_NAME, tr("Failed to connect: %1").arg(m_serialPort->errorString()));
+            QMessageBox::critical(this, APP_NAME, tr("Failed to connect: %1").arg(m_worker->errorString()));
         }
     } else {
-        m_serialPort->disconnect();
+        m_worker->disconnect();
         m_pinoutsReadTimer->stop();
         setConnected(false);
     }
@@ -120,7 +124,7 @@ void MainWindow::doConnect() {
 
 ///////////////////////////////////////////////////////////////////////////////
 void MainWindow::setSettings() {
-    m_serialPort->disconnect();
+    m_worker->disconnect();
     setConnected(false);
 
     SettingsDialog dialog(this);
@@ -153,19 +157,13 @@ void MainWindow::doMacros() {
     MacrosDialog *dialog = new MacrosDialog(this);
     dialog->setModal(false);
 
-    QObject::connect(dialog, &MacrosDialog::writeData, this, &MainWindow::hasDataToWrite);
-    QObject::connect(this, &MainWindow::dataReady, dialog, &MacrosDialog::hasDataReady);
+    QObject::connect(dialog, &MacrosDialog::writeData, this, &MainWindow::outputTransmitedData);
+    QObject::connect(m_worker, &Worker::dataReady, dialog, &MacrosDialog::hasDataReady);
     QObject::connect(this, &MainWindow::windowClosed, dialog, &MacrosDialog::close);
     QObject::connect(this, &MainWindow::connectStatusChanged, dialog, &MacrosDialog::connectStatusHasChanged);
 
     dialog->setConnectStatus(m_bConnected);
     dialog->show();
-}
-
-///////////////////////////////////////////////////////////////////////////////
-void MainWindow::serialDataReady() {
-    QByteArray ba = m_serialPort->readAll();
-    emit dataReady(ba);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -208,7 +206,9 @@ void MainWindow::sendFile() {
     for (int i=0; i<data.length(); i++) {
         ch[0] = ptr[i];
 
-        m_serialPort->write(ch, 1);
+        QByteArray data = ch;
+        emit writeData(data);
+        qApp->processEvents();
 
         tmp.clear();
         tmp += (char)ch[0];
@@ -234,26 +234,35 @@ void MainWindow::sendFile() {
 ///////////////////////////////////////////////////////////////////////////////
 void MainWindow::setDTR(int state) {
     if (m_bConnected) {
-        m_serialPort->setDataTerminalReady(state == Qt::Checked);
+        m_worker->setDataTerminalReady(state == Qt::Checked);
     }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void MainWindow::setRTS(int state) {
     if (m_bConnected) {
-        m_serialPort->setRequestToSend(state == Qt::Checked);
+        m_worker->setRequestToSend(state == Qt::Checked);
     }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MainWindow::hasDataToWrite(QByteArray &data) {
-    m_serialPort->write(data);
+void MainWindow::outputTransmitedData(QByteArray data) {
     setAsciiData(data, COLOR_BLUE);
     setHexData(data, COLOR_BLUE);
+    emit writeData(data);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MainWindow::updateUI(QByteArray &data) {
+void MainWindow::serialPortError(QSerialPort::SerialPortError error) {
+    if (m_bConnected && m_bStartup && error == QSerialPort::ResourceError) {
+        m_pinoutsReadTimer->stop();
+        m_worker->disconnect();
+        setConnected(false);
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void MainWindow::outputReceivedData(QByteArray data) {
     setAsciiData(data, COLOR_RED);
     setHexData(data, COLOR_RED);
 }
@@ -261,8 +270,8 @@ void MainWindow::updateUI(QByteArray &data) {
 ///////////////////////////////////////////////////////////////////////////////
 void MainWindow::keyPressed(QString text) {
     if (m_bConnected) {
-        QByteArray ba = text.toLocal8Bit();
-        hasDataToWrite(ba);
+        QByteArray data = text.toLocal8Bit();
+        outputTransmitedData(data);
     }
 }
 
@@ -271,7 +280,7 @@ void MainWindow::pinoutReadTimerTimeout() {
     if (m_bConnected) {
         m_bStartup = true;
 
-        QSerialPort::PinoutSignals pins = m_serialPort->pinoutSignals();
+        QSerialPort::PinoutSignals pins = m_worker->pinoutSignals();
 
         ui->checkDCD->setChecked(!!(pins & QSerialPort::DataCarrierDetectSignal));
         ui->checkDSR->setChecked(!!(pins & QSerialPort::DataSetReadySignal));
@@ -288,15 +297,6 @@ void MainWindow::progressCanceled() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void MainWindow::serialPortError(QSerialPort::SerialPortError error) {
-    if (m_bConnected && m_bStartup && error == QSerialPort::ResourceError) {
-        m_pinoutsReadTimer->stop();
-        m_serialPort->disconnect();
-        setConnected(false);
-    }
-}
-
-///////////////////////////////////////////////////////////////////////////////
 void MainWindow::setConnected(bool connected) {
     QString title;
 
@@ -306,8 +306,8 @@ void MainWindow::setConnected(bool connected) {
 
         if (g_Settings.flowControl != (int)QSerialPort::HardwareControl) {
             enablePinsCheckBoxes(true);
-            m_serialPort->setRequestToSend(false);
-            m_serialPort->setDataTerminalReady(false);
+            m_worker->setRequestToSend(false);
+            m_worker->setDataTerminalReady(false);
         }
 
         ui->btnSendFile->setEnabled(true);
@@ -318,14 +318,14 @@ void MainWindow::setConnected(bool connected) {
         title += ": ";
         title += g_Settings.comPort;
         title += "; ";
-        title += QString::number(m_serialPort->baudRate());
+        title += QString::number(m_worker->baudRate());
         title += "; ";
-        title += QString::number(m_serialPort->dataBits());
+        title += QString::number(m_worker->dataBits());
         title += "; ";
-        title += QString::number(m_serialPort->stopBits());
+        title += QString::number(m_worker->stopBits());
         title += "; ";
 
-        switch (m_serialPort->flowControl()) {
+        switch (m_worker->flowControl()) {
             case QSerialPort::NoFlowControl: title += "None"; break;
             case QSerialPort::HardwareControl: title += "Hardware"; break;
             case QSerialPort::SoftwareControl: title += "Software"; break;

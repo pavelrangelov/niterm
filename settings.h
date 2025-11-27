@@ -6,7 +6,7 @@
 
 #define APP_NAME "NiTerm"
 #define ORG_NAME "Nifelheim"
-#define APP_VERS "1.02"
+#define APP_VERS "1.10"
 
 #define STORE_GEOMETRY      "APP/Geometry"
 #define STORE_ENCODING      "APP/Encoding"

@@ -14,6 +14,7 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
 		mainwindow.cpp \
+    worker.cpp \
 	wserialport.cpp \
 	settingsdialog.cpp \
 	settings.cpp \
@@ -27,6 +28,7 @@ SOURCES += main.cpp\
     timerthread.cpp
 
 HEADERS  += mainwindow.h \
+    worker.h \
 	wserialport.h \
 	settingsdialog.h \
 	settings.h \
