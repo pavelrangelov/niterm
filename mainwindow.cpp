@@ -169,7 +169,6 @@ void MainWindow::doMacros() {
 ///////////////////////////////////////////////////////////////////////////////
 void MainWindow::sendFile() {
     QFile file;
-    char ch[1];
     QByteArray tmp(4,0);
 
     QString fileName = chooseSendFile();
@@ -201,20 +200,13 @@ void MainWindow::sendFile() {
 
     m_bCanceled = false;
 
-    const char *ptr = data.constData();
-
     for (int i=0; i<data.length(); i++) {
-        ch[0] = ptr[i];
-
-        QByteArray data = ch;
-        emit writeData(data);
+        QByteArray d;
+        d.append(data.at(i));
+        emit writeData(d);
         qApp->processEvents();
 
-        tmp.clear();
-        tmp += (char)ch[0];
-        setAsciiData(tmp, COLOR_BLUE);
-        setHexData(tmp, COLOR_BLUE);
-
+        outputReceivedData(d);
         delay(g_Settings.charDelay);
 
         if (i%100) {
