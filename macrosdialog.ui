@@ -55,6 +55,9 @@
           <height>54</height>
          </size>
         </property>
+        <property name="toolTip">
+         <string>Save To File</string>
+        </property>
         <property name="text">
          <string>...</string>
         </property>
@@ -89,6 +92,9 @@
           <width>54</width>
           <height>54</height>
          </size>
+        </property>
+        <property name="toolTip">
+         <string>Load From File</string>
         </property>
         <property name="text">
          <string>...</string>
@@ -129,6 +135,9 @@
           <height>54</height>
          </size>
         </property>
+        <property name="toolTip">
+         <string>Add Row After Selected</string>
+        </property>
         <property name="text">
          <string>...</string>
         </property>
@@ -161,6 +170,9 @@
           <height>54</height>
          </size>
         </property>
+        <property name="toolTip">
+         <string>Add Row Before Selected</string>
+        </property>
         <property name="text">
          <string>...</string>
         </property>
@@ -192,6 +204,9 @@
           <width>54</width>
           <height>54</height>
          </size>
+        </property>
+        <property name="toolTip">
+         <string>Remove Row</string>
         </property>
         <property name="text">
          <string>...</string>
@@ -234,6 +249,9 @@
         </property>
         <property name="focusPolicy">
          <enum>Qt::FocusPolicy::StrongFocus</enum>
+        </property>
+        <property name="toolTip">
+         <string>Send All</string>
         </property>
         <property name="text">
          <string>...</string>
